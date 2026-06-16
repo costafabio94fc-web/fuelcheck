@@ -1090,7 +1090,7 @@ async function pushToComm(riforn) {
 
 // ── PROXY URL per analisi foto ────────────────────────────────
 // Cambia questo URL con quello del tuo Cloudflare Worker dopo il deploy
-const PROXY_URL = 'https://fuelcheck-vision.costafabio94fc.workers.dev/analyze';
+const PROXY_URL = '/api/analyze';
 
 // ── FOTO DISPLAY DISTRIBUTORE ─────────────────────────────────
 let photoBase64 = null;
@@ -1102,16 +1102,29 @@ function onPhotoSelected(input) {
   const reader = new FileReader();
   reader.onload = async (e) => {
     const dataUrl = e.target.result;
-    photoBase64 = dataUrl.split(',')[1];
-    photoMime = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
-    // Imposta data odierna automaticamente
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('rData').value = today;
-    // Mostra preview
-    document.getElementById('photoImg').src = dataUrl;
-    document.getElementById('photoPreview').style.display = 'block';
-    // Analizza automaticamente
-    await analyzePhoto();
+    // Ridimensiona a max 800px e qualità 60% per stare sotto 128KB (limite Cloudflare free)
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 800, maxH = 800;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.6);
+      photoBase64 = compressed.split(',')[1];
+      photoMime = 'image/jpeg';
+      // Imposta data odierna automaticamente
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('rData').value = today;
+      // Mostra preview
+      document.getElementById('photoImg').src = compressed;
+      document.getElementById('photoPreview').style.display = 'block';
+      // Analizza automaticamente
+      await analyzePhoto();
+    };
+    img.src = dataUrl;
   };
   reader.readAsDataURL(file);
 }
