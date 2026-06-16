@@ -1,5 +1,5 @@
 {
-  "name": "fuelcheck-vision",
+  "name": "fuelcheck",
   "main": "worker.js",
   "compatibility_date": "2026-06-16"
 }
