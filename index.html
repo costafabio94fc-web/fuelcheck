@@ -137,7 +137,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .car-selector-chevron{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:12px}
 .car-custom-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 .car-custom-label{font-size:11px;color:var(--muted);margin-bottom:4px}
-.g-input{background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:#f0ede8;font-family:var(--fb);font-size:14px;padding:9px 12px;outline:none;transition:border-color .2s;width:100%}
+.g-input{background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:#f0ede8;font-family:var(--fb);font-size:16px;padding:9px 12px;outline:none;transition:border-color .2s;width:100%}
 .g-input:focus{border-color:var(--red)}
 .g-input::placeholder{color:var(--muted)}
 .fuel-selector-wrap{margin-bottom:14px}
@@ -152,9 +152,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 /* ── FORM RIFORNIMENTO ── */
 .riforn-form{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.2rem}
 .riforn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.riforn-grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-.g-label{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
-.btn-add{width:100%;background:var(--red);border:none;border-radius:7px;color:#fff;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:11px;cursor:pointer;transition:opacity .18s}
+.riforn-grid-4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}@media(min-width:500px){.riforn-grid-4{grid-template-columns:1fr 1fr 1fr 1fr}}
+.g-label{font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+.btn-add{width:100%;background:var(--red);border:none;border-radius:7px;color:#fff;font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:15px;cursor:pointer;transition:opacity .18s}
 .btn-add:hover{opacity:.85}
 .btn-add:active{transform:scale(.98)}
 
@@ -238,12 +238,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 /* ── FOTO DISPLAY ── */
 .photo-btn-wrap{margin-bottom:10px}
-.btn-photo{width:100%;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);border-radius:7px;color:#a5b4fc;font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-photo{width:100%;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);border-radius:7px;color:#a5b4fc;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:14px 10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-photo:hover{background:rgba(99,102,241,.28);border-color:#a5b4fc}
 .btn-photo:active{transform:scale(.98)}
 .btn-photo:disabled{opacity:.45;cursor:not-allowed}
 .photo-preview{display:none;margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative}
-.photo-preview img{width:100%;max-height:180px;object-fit:cover;display:block}
+.photo-preview img{width:100%;max-height:220px;object-fit:contain;display:block;background:#111}
 .photo-preview-remove{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:24px;height:24px;color:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
 .photo-status{font-size:12px;text-align:center;min-height:18px;margin-bottom:6px;transition:color .3s}
 .photo-result{display:none;background:rgba(91,232,152,.07);border:1px solid rgba(91,232,152,.2);border-radius:7px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#5be898}
