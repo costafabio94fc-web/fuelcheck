@@ -242,6 +242,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .btn-photo:hover{background:rgba(99,102,241,.28);border-color:#a5b4fc}
 .btn-photo:active{transform:scale(.98)}
 .btn-photo:disabled{opacity:.45;cursor:not-allowed}
+.btn-photo-odo{width:100%;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);border-radius:7px;color:#5be898;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:14px 10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.btn-photo-odo:hover{background:rgba(16,185,129,.22);border-color:#5be898}
+.btn-photo-odo:active{transform:scale(.98)}
+.btn-photo-odo:disabled{opacity:.45;cursor:not-allowed}
+.photo-preview-odo{display:none;margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative}
+.photo-preview-odo img{width:100%;max-height:160px;object-fit:contain;display:block;background:#111}
+.photo-odo-status{font-size:12px;text-align:center;min-height:18px;margin-bottom:6px;transition:color .3s}
 .photo-preview{display:none;margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative}
 .photo-preview img{width:100%;max-height:220px;object-fit:contain;display:block;background:#111}
 .photo-preview-remove{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:24px;height:24px;color:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
@@ -1137,6 +1144,82 @@ function removePhoto() {
   document.getElementById('photoStatus').textContent = '';
 }
 
+function removeOdoPhoto() {
+  document.getElementById('photoOdoInput').value = '';
+  document.getElementById('photoPreviewOdo').style.display = 'none';
+  document.getElementById('photoOdoStatus').textContent = '';
+}
+
+function onOdoPhotoSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 800, maxH = 800;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.6);
+      document.getElementById('photoOdoImg').src = compressed;
+      document.getElementById('photoPreviewOdo').style.display = 'block';
+      await analyzeOdoPhoto(compressed.split(',')[1]);
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeOdoPhoto(base64) {
+  const status = document.getElementById('photoOdoStatus');
+  const btn = document.getElementById('photoOdoBtn');
+  btn.disabled = true;
+  status.style.color = 'var(--muted)';
+  status.textContent = '🔍 Lettura odometro con Gemini...';
+  try {
+    const resp = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        image: base64,
+        mime: 'image/jpeg',
+        prompt: `Questa è una foto del cruscotto o display di un'auto. Leggi il valore dell'odometro (km totali percorsi). Rispondi SOLO con JSON: {"km": 45230}. Se non leggibile metti null.`
+      })
+    });
+    if (!resp.ok) throw new Error(`Errore ${resp.status}`);
+    const data = await resp.json();
+    const text = (data.text || '').trim();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch(e) {
+      const match = text.match(/\{[^}]+\}/);
+      if (match) { try { parsed = JSON.parse(match[0]); } catch(e2) {} }
+    }
+    if (parsed && parsed.km != null) {
+      const km = parseInt(String(parsed.km).replace(/[.,\s]/g, ''));
+      if (!isNaN(km) && km > 0) {
+        document.getElementById('rOdo').value = km;
+        status.style.color = '#5be898';
+        status.textContent = `✓ Odometro rilevato: ${km.toLocaleString('it')} km`;
+      } else {
+        status.style.color = '#f5c060';
+        status.textContent = '⚠ Valore non valido — inserisci manualmente';
+      }
+    } else {
+      status.style.color = '#f5c060';
+      status.textContent = `⚠ Non riesco a leggere l'odometro — inserisci manualmente`;
+    }
+  } catch(err) {
+    status.style.color = '#f87171';
+    status.textContent = `✗ Errore: ${err.message}`;
+  }
+  btn.disabled = false;
+}
+
 async function analyzePhoto() {
   const status = document.getElementById('photoStatus');
   const result = document.getElementById('photoResult');
@@ -1664,6 +1747,18 @@ render();
       </div>
       <div class="photo-status" id="photoStatus"></div>
       <div class="photo-result" id="photoResult"></div>
+      <!-- Foto odometro -->
+      <div class="photo-btn-wrap">
+        <input type="file" id="photoOdoInput" accept="image/*" capture="environment" style="display:none" onchange="onOdoPhotoSelected(this)"/>
+        <button class="btn-photo-odo" id="photoOdoBtn" onclick="document.getElementById('photoOdoInput').click()">
+          🚗 Fotografa odometro / cruscotto
+        </button>
+      </div>
+      <div class="photo-preview-odo" id="photoPreviewOdo">
+        <img id="photoOdoImg" src="" alt="Odometro"/>
+        <button class="photo-preview-remove" onclick="removeOdoPhoto()" title="Rimuovi foto" style="top:6px;right:6px">✕</button>
+      </div>
+      <div class="photo-odo-status" id="photoOdoStatus"></div>
       <!-- Campi manuali -->
       <div class="riforn-grid-4">
         <div>
