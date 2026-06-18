@@ -1077,20 +1077,22 @@ async function pushToComm(riforn) {
   await loadCommData();
   const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
   if (!commContribs[key]) commContribs[key] = [];
-  commContribs[key].push({
+  const contrib = {
     marca:    gCarInfo.marca,
     modello:  gCarInfo.modello,
     versione: gCarInfo.versione || null,
     fuel:     gCarInfo.fuel || 'benzina',
     misto:    parseFloat(cons.toFixed(2)),
-    autostr:  parseFloat(cons.toFixed(2)), // stesso valore, non distinguiamo il tratto
+    autostr:  parseFloat(cons.toFixed(2)),
     kmAnno:   null,
     annoImm:  gCarInfo.anno || null,
     profilo:  'misto',
     note:     `Da rifornimento del ${riforn.data}`,
     ts:       Date.now()
-  });
-  await saveCommData();
+  };
+  commContribs[key] = commContribs[key] || [];
+  commContribs[key].push(contrib);
+  await pushCommContrib(key, contrib);
   renderCommResults();
   updateCommCount();
 }
@@ -1457,23 +1459,32 @@ let commContribs = {};   // {carUrl: [{misto,auto,kmAnno,profilo,note,annoImm,ts
 let commCarKey   = null; // url dell'auto selezionata nel form
 let commCarObj   = null; // oggetto DB auto selezionata
 
-// ── Storage helpers ───────────────────────────────────────────
-const COMM_KEY = 'fc_community_v1';
+// ── Storage helpers — Cloudflare KV via Worker ───────────────
+const COMM_URL = 'https://fuelcheck-vision.costafabio94fc.workers.dev/community';
 
 async function loadCommData() {
   try {
-    const res = await window.storage.get(COMM_KEY, true);
-    commContribs = res ? JSON.parse(res.value) : {};
+    const resp = await fetch(COMM_URL);
+    if (resp.ok) commContribs = await resp.json();
+    else commContribs = {};
   } catch(e) {
     commContribs = {};
   }
 }
 
 async function saveCommData() {
+  // Non usato direttamente — ogni contributo viene salvato singolarmente via pushCommContrib
+}
+
+async function pushCommContrib(key, data) {
   try {
-    await window.storage.set(COMM_KEY, JSON.stringify(commContribs), true);
+    await fetch(COMM_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({key, data})
+    });
   } catch(e) {
-    console.warn('Storage write failed', e);
+    console.warn('KV write failed', e);
   }
 }
 
@@ -1527,7 +1538,7 @@ async function submitContrib() {
 
   if (!commContribs[commCarKey]) commContribs[commCarKey] = [];
   commContribs[commCarKey].push(contrib);
-  await saveCommData();
+  await pushCommContrib(commCarKey, contrib);
 
   // Reset form
   ['commMarca','commModello','commVersione','commMisto','commAuto','commKmAnno','commAnnoImm','commNote'].forEach(id => {
