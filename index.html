@@ -9,7 +9,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--red:#E8321A;--dark:#0f0f0f;--panel:#181818;--panel2:#222;--border:rgba(255,255,255,0.07);--muted:rgba(255,255,255,0.38);--fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif}
 body{background:var(--dark);color:#f0ede8;font-family:var(--fb);min-height:100vh}
-.header{border-bottom:1px solid var(--border);padding:.9rem 1.4rem;display:flex;align-items:center;justify-content:space-between;gap:12px}\n.logo{font-family:var(--fd);font-size:21px;font-weight:800;letter-spacing:.04em}
+.header{border-bottom:1px solid var(--border);padding:.9rem 1.4rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-family:var(--fd);font-size:21px;font-weight:800;letter-spacing:.04em}
 .logo span{color:var(--red)}
 .nav-tabs{display:flex;border-bottom:1px solid var(--border);background:#131313;overflow-x:auto}
 .nav-tab{padding:.9rem 1.4rem;font-family:var(--fd);font-size:15px;font-weight:700;text-transform:uppercase;color:var(--muted);border:none;background:none;cursor:pointer;letter-spacing:.03em;position:relative;white-space:nowrap;transition:color .2s}
@@ -20,7 +21,7 @@ body{background:var(--dark);color:#f0ede8;font-family:var(--fb);min-height:100vh
 .page.active{display:block}
 .grid-comp{display:grid;grid-template-columns:1fr;gap:1.4rem}
 @media(min-width:900px){.grid-comp{grid-template-columns:340px 1fr}}
-.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1.4rem;display:flex;col-direction:column;flex-direction:column;gap:1.2rem}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1.4rem;display:flex;flex-direction:column;gap:1.2rem}
 .p-title{font-family:var(--fd);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,0.9);margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between}
 .f-group{display:flex;flex-direction:column;gap:.4rem}
 .f-label{font-size:11px;font-weight:500;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
@@ -28,12 +29,12 @@ body{background:var(--dark);color:#f0ede8;font-family:var(--fb);min-height:100vh
 .f-input{background:none;border:none;color:#fff;font-family:var(--fb);font-size:15px;width:100%;outline:none}
 .f-unit{font-size:12px;color:var(--muted);font-weight:500}
 .slider-wrap{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:.8rem}
-.sl-header{display:flex;justify-content:between;justify-content:space-between;font-size:12px;margin-bottom:.6rem}
+.sl-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:.6rem}
 .sl-lbl{color:var(--muted);text-transform:uppercase;font-weight:500;letter-spacing:.02em}
 .sl-val{font-weight:600;color:var(--red)}
 .slider{width:100%;-webkit-appearance:none;background:rgba(255,255,255,0.1);height:4px;border-radius:2px;outline:none}
 .slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--red);cursor:pointer}
-.sl-legs{display:flex;justify-content:between;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:.4rem}
+.sl-legs{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:.4rem}
 .btn-mimit{background:none;border:1px solid var(--red);color:var(--red);font-family:var(--fd);font-size:11px;font-weight:700;text-transform:uppercase;padding:.3rem .6rem;border-radius:4px;cursor:pointer;transition:all .2s;letter-spacing:.02em}
 .btn-mimit:hover{background:var(--red);color:#fff}
 .fuel-row{display:grid;grid-template-columns:1fr;gap:.8rem}
@@ -124,7 +125,6 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
 
 <div id="page-comparison" class="page active">
 <div class="grid-comp">
-
   <div class="panel">
     <div>
       <div class="p-title">Profilo Guida</div>
@@ -136,7 +136,6 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
         </div>
       </div>
     </div>
-
     <div>
       <div class="slider-wrap">
         <div class="sl-header">
@@ -150,7 +149,6 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
         </div>
       </div>
     </div>
-
     <div>
       <div class="p-title">
         <span>Prezzi Energia</span>
@@ -158,7 +156,6 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:-6px;line-height:1.3">I prezzi sono modificabili manualmente o aggiornabili ai medi regionali MIMIT.</div>
     </div>
-
     <div style="display:flex;flex-direction:column;gap:.8rem">
       <div class="f-group">
         <div class="f-label" style="color:#29b6f6">Benzina</div>
@@ -190,19 +187,17 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
         <div class="rh-sub">Spesa calcolata sui consumi delle prove su strada di Motor1.it</div>
       </div>
     </div>
-    <div class="grid-cars" id="carsContainer">
-      </div>
+    <div class="grid-cars" id="carsContainer"></div>
   </div>
-
 </div>
-</div><div id="page-garage" class="page">
-<div class="garage-layout">
+</div>
 
+<div id="page-garage" class="page">
+<div class="garage-layout">
   <div style="display:flex;flex-direction:column;gap:1.4rem">
     <div class="garage-section">
       <div class="garage-title">🚗 Il mio parco auto</div>
-      <div class="g-car-box" id="gCarsList">
-        </div>
+      <div class="g-car-box" id="gCarsList"></div>
       <button class="btn btn-sec" style="width:100%" onclick="openPop('popCar')">➕ Aggiungi un veicolo</button>
     </div>
 
@@ -215,13 +210,11 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
             <option value="">— Seleziona Auto —</option>
           </select>
         </div>
-        
         <div class="ocr-zone" onclick="openPop('popOcr')">
           <div style="font-size:18px;margin-bottom:4px">📸</div>
           <div style="font-size:12px;font-weight:600">Scansiona Scontrino</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">Lettura automatica dati con IA</div>
         </div>
-
         <div class="f-group">
           <div class="f-label">Km percorsi dall'ultimo pieno</div>
           <div class="f-row"><input class="f-input" type="number" id="gKm" placeholder="es. 650"/><div class="f-unit">Km</div></div>
@@ -251,7 +244,6 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
         </select>
       </div>
     </div>
-
     <div class="table-wrap" id="gTableWrap" style="display:none;">
       <table class="g-table">
         <thead>
@@ -269,36 +261,33 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
         <tbody id="gHistBody"></tbody>
       </table>
     </div>
-
     <div class="garage-empty" id="gEmpty">
       <div class="garage-empty-icon">🚗</div>
       <div class="garage-empty-text">Inserisci la tua auto e il primo rifornimento per iniziare a tracciare i consumi</div>
     </div>
-
   </div>
 </div>
-</div><div id="page-community" class="page">
-<div class="comm-area">
+</div>
 
+<div id="page-community" class="page">
+<div class="comm-area">
   <div class="comm-hero">
     <div class="comm-count" id="commTotalCount">—</div>
     <div style="font-size:11px;color:var(--muted);margin:2px 0 8px">contributi dalla community</div>
     <div class="comm-hero-title">📊 Consumi reali verificati</div>
     <div class="comm-hero-sub">Ogni rifornimento che inserisci nel tuo Garage contribuisce automaticamente · Almeno 5 contributi per mostrare la media</div>
   </div>
-
   <div class="garage-section">
     <div class="garage-title">🔍 Esplora i dati community</div>
     <div class="comm-search-wrap">
-      <input class="comm-search" id="commSearch" placeholder=\"Cerca un'auto... es. Dacia Duster, Honda Civic...\" oninput="filterCommResults()"/>
+      <input class="comm-search" id="commSearch" placeholder="Cerca un'auto... es. Dacia Duster, Honda Civic..." oninput="filterCommResults()"/>
     </div>
   </div>
-
-  <div class="comm-list" id="commList">
-    </div>
-
+  <div class="comm-list" id="commList"></div>
 </div>
-</div><div class="g-pop-overlay" id="popCar">
+</div>
+
+<div class="g-pop-overlay" id="popCar">
   <div class="g-pop-box">
     <div class="g-pop-head">
       <div class="g-pop-title">Nuovo Veicolo</div>
@@ -344,10 +333,10 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
 </div>
 
 <script>
-  // 1. CONFIGURAZIONE: SOSTITUISCI QUESTO INDIRIZZO CON IL TUO URL DI CLOUDFLARE WORKER!
-  const WORKER_URL = "https://fuelcheck-vision.costafabio94fc.workers.dev";
+  // ── CONFIGURAZIONE INDIRIZZO WORKER CLOUDFLARE ──
+  const WORKER_URL = "https://il-tuo-worker.tuo-sottodominio.workers.dev";
 
-  // Database vetture precaricate da Motor1.it (Esempio strutturale statico)
+  // Vetture statiche precaricate per la tab Confronto
   const dbMotor1 = [
     { id: "m1_duster", marca: "Dacia", modello: "Duster 1.0 TCe", alimentazione: "GPL", consUrb: 8.5, consExt: 6.8, segment: "SUV Compatto" },
     { id: "m1_golf", marca: "Volkswagen", modello: "Golf 2.0 TDI", alimentazione: "Diesel", consUrb: 5.2, consExt: 3.9, segment: "Berlina" },
@@ -355,12 +344,10 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     { id: "m1_model3", marca: "Tesla", modello: "Model 3 RWD", alimentazione: "Elettrico", consUrb: 12.0, consExt: 15.2, segment: "Berlina Premium" }
   ];
 
-  // Variabili di stato dell'applicazione
   let mieAuto = JSON.parse(localStorage.getItem('fc_cars')) || [];
   let mieiRifornimenti = JSON.parse(localStorage.getItem('fc_rifornimenti')) || [];
   let datiCommunityGlobali = {};
 
-  // Funzione di bootstrap all'avvio della pagina
   window.addEventListener('DOMContentLoaded', () => {
     switchPage('comparison'); 
     recalcAll();              
@@ -369,7 +356,6 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     caricaDatiCommunity();    
   });
 
-  // Gestione della navigazione a schede (Tab)
   function switchPage(pageId) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
@@ -381,11 +367,9 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     if(clickedTab) clickedTab.classList.add('active');
   }
 
-  // Popup Open/Close Utilities
   function openPop(id) { document.getElementById(id).style.display = 'flex'; }
   function closePop(id) { document.getElementById(id).style.display = 'none'; }
 
-  // Calcola i costi della prima tab basandosi sui consumi dichiarati e i prezzi correnti
   function recalcAll() {
     const kmAnnui = parseFloat(document.getElementById('paramKm').value) || 0;
     const mixUrbano = parseFloat(document.getElementById('paramMix').value) || 0;
@@ -407,16 +391,8 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
       const quotaUrbana = mixUrbano / 100;
       const quotaExt = 1 - quotaUrbana;
       const consumoMisto = (car.consUrb * quotaUrbana) + (car.consExt * quotaExt);
-      
       const prezzoCarburante = prezzi[car.alimentazione] || 0;
-      let costoAnnuo = 0;
-
-      if (car.alimentazione === 'Elettrico') {
-        costoAnnuo = (kmAnnui / 100) * consumoMisto * prezzoCarburante;
-      } else {
-        costoAnnuo = (kmAnnui / 100) * consumoMisto * prezzoCarburante;
-      }
-
+      const costoAnnuo = (kmAnnui / 100) * consumoMisto * prezzoCarburante;
       const unitText = car.alimentazione === 'Elettrico' ? 'kWh/100km' : (car.alimentazione === 'Metano' ? 'Kg/100km' : 'L/100km');
 
       container.innerHTML += `
@@ -440,13 +416,11 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     });
   }
 
-  // Funzione simulata per il MIMIT (estendibile con fetch reale sul worker)
   function loadMIMIT() {
-    alert("I prezzi nazionali medi sono stati aggiornati correttamente in base all'ultimo dataset disponibile del MIMIT.");
+    alert("Prezzi nazionali aggiornati (simulazione).");
     recalcAll();
   }
 
-  // Scarica l'oggetto JSON globale della community dal KV di Cloudflare
   async function caricaDatiCommunity() {
     try {
       const response = await fetch(`${WORKER_URL}/community`);
@@ -455,11 +429,10 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
         disegnaCommunity(datiCommunityGlobali);
       }
     } catch (error) {
-      console.error("Errore nel caricamento dei dati community:", error);
+      console.error("Errore nel caricamento community:", error);
     }
   }
 
-  // Genera ed inserisce graficamente le card nella Tab Community
   function disegnaCommunity(data) {
     const listContainer = document.getElementById('commList');
     const totalCountEl = document.getElementById('commTotalCount');
@@ -500,7 +473,7 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     if(totalCountEl) totalCountEl.innerText = totaleContributi;
   }
 
-  // ─── AGGIUNTA RIFORNIMENTO + AUTOMAZIONE COMMUNITY ───
+  // ── INSERIMENTO ED INVIO AUTOMATICO ──
   async function aggiungiRifornimento() {
     const autoId = document.getElementById('garageCarSelector').value;
     const km = parseFloat(document.getElementById('gKm').value);
@@ -508,17 +481,15 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     const spesa = parseFloat(document.getElementById('gSpesa').value);
 
     if (!autoId || isNaN(km) || isNaN(qta) || isNaN(spesa) || km <= 0 || qta <= 0 || spesa <= 0) {
-      alert("Compila correttamente tutti i dati numerici del rifornimento.");
+      alert("Inserisci valori numerici corretti.");
       return;
     }
 
     const autoSelezionata = mieAuto.find(a => a.id === autoId);
     if (!autoSelezionata) return;
 
-    // Calcolo matematico standard dei litri per 100 Km
     const consumoCalcolato = parseFloat(((qta / km) * 100).toFixed(2));
 
-    // 1. Salvataggio nel registro personale locale del browser
     const nuovoRifornimento = {
       id: Date.now().toString(),
       autoId: autoId,
@@ -531,7 +502,7 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     mieiRifornimenti.push(nuovoRifornimento);
     localStorage.setItem('fc_rifornimenti', JSON.stringify(mieiRifornimenti));
 
-    // 2. AUTOMAZIONE COMMUNITARIA: Invio asincrono dei dati sul Cloudflare Worker
+    // INVIO AL WORKER PER LA COMMUNITY
     const datiPerCommunity = {
       marca: autoSelezionata.marca,
       modello: autoSelezionata.modello,
@@ -545,42 +516,31 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datiPerCommunity)
       });
-
       if (response.ok) {
-        // Se l'inserimento va a buon fine, salviamo i dati aggiornati restituiti e rifacciamo il render
         datiCommunityGlobali = await response.json();
         disegnaCommunity(datiCommunityGlobali);
-        console.log("Rifornimento inviato e registrato nella community!");
       }
     } catch (error) {
-      console.error("Connessione con l'endpoint della community fallita:", error);
+      console.error("Errore di rete nell'invio alla community:", error);
     }
 
-    // Reset del modulo inserimento e aggiornamento visivo immediato della tabella garage
     document.getElementById('gKm').value = '';
     document.getElementById('gQta').value = '';
     document.getElementById('gSpesa').value = '';
     renderGarage();
   }
 
-  // Aggiunge un veicolo personalizzato all'elenco locale dell'utente
   function aggiungiAuto() {
     const marca = document.getElementById('carMarca').value.trim();
     const modello = document.getElementById('carModello').value.trim();
     const alimentazione = document.getElementById('carFuel').value;
 
     if (!marca || !modello) {
-      alert("Compila correttamente marca e modello!");
+      alert("Inserisci marca e modello.");
       return;
     }
 
-    const nuovaAuto = {
-      id: 'auto_' + Date.now(),
-      marca: marca,
-      modello: modello,
-      alimentazione: alimentazione
-    };
-
+    const nuovaAuto = { id: 'auto_' + Date.now(), marca: marca, modello: modello, alimentazione: alimentazione };
     mieAuto.push(nuovaAuto);
     localStorage.setItem('fc_cars', JSON.stringify(mieAuto));
 
@@ -592,24 +552,20 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     renderGarage();
   }
 
-  // Aggiorna gli elementi Dropdown HTML dedicati alla selezione dei veicoli
   function aggiornaSelettoriAuto() {
     const selectors = ['garageCarSelector', 'historyCarSelector'];
     selectors.forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
-      
       sel.innerHTML = id === 'garageCarSelector' 
         ? '<option value="">— Seleziona Auto —</option>' 
         : '<option value="all">🚗 Tutte le auto nel garage</option>';
-      
       mieAuto.forEach(auto => {
         sel.innerHTML += `<option value="${auto.id}">${auto.marca} ${auto.modello} (${auto.alimentazione})</option>`;
       });
     });
   }
 
-  // Si occupa di mostrare/nascondere la tabella riassuntiva dei propri rifornimenti
   function renderGarage() {
     const gEmpty = document.getElementById('gEmpty');
     const panelAddRif = document.getElementById('panelAddRif');
@@ -622,7 +578,6 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
       if(gEmpty) gEmpty.style.display = 'block';
       if(panelAddRif) panelAddRif.style.display = 'none';
       if(gTableWrap) gTableWrap.style.display = 'none';
-      if(gCarsList) gCarsList.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:1rem">Nessun veicolo registrato</div>';
       return;
     }
 
@@ -644,7 +599,6 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
       });
     }
 
-    // Filtra lo storico in base all'auto selezionata nella dropdown
     let rifFiltrati = mieiRifornimenti;
     if (historyFilter !== 'all') {
       rifFiltrati = mieiRifornimenti.filter(r => r.autoId === historyFilter);
@@ -656,23 +610,18 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
       if(gTableWrap) gTableWrap.style.display = 'block';
       if (gHistBody) {
         gHistBody.innerHTML = '';
-        const copiaRifornimenti = [...rifFiltrati].reverse();
-        
-        copiaRifornimenti.forEach(rif => {
+        [...rifFiltrati].reverse().forEach(rif => {
           const auto = mieAuto.find(a => a.id === rif.autoId);
           const nomeAuto = auto ? `${auto.marca} ${auto.modello}` : 'Auto rimossa';
-          const prezzoAlLitro = (rif.spesa / rif.qta).toFixed(3);
-          const unit = (auto && auto.alimentazione === 'Metano') ? 'Kg' : ((auto && auto.alimentazione === 'Elettrico') ? 'kWh' : 'L');
-
           gHistBody.innerHTML += `
             <tr>
               <td>${rif.data}</td>
               <td style="font-weight:500">${nomeAuto}</td>
               <td>${rif.km} Km</td>
-              <td>${rif.qta} ${unit}</td>
+              <td>${rif.qta} L</td>
               <td style="font-weight:600;color:var(--red)">${rif.spesa.toFixed(2)} €</td>
-              <td style="color:var(--muted)">${prezzoAlLitro} €/${unit}</td>
-              <td><span class="badge-cons">${rif.consumo} ${unit}/100km</span></td>
+              <td style="color:var(--muted)">${(rif.spesa / rif.qta).toFixed(3)} €/L</td>
+              <td><span class="badge-cons">${rif.consumo} L/100km</span></td>
               <td><button onclick="eliminaRifornimento('${rif.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer">❌</button></td>
             </tr>
           `;
@@ -681,16 +630,14 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     }
   }
 
-  // Elimina un singolo rifornimento dalla memoria locale
   function eliminaRifornimento(id) {
     mieiRifornimenti = mieiRifornimenti.filter(r => r.id !== id);
     localStorage.setItem('fc_rifornimenti', JSON.stringify(mieiRifornimenti));
     renderGarage();
   }
 
-  // Elimina un'auto dal proprio parco auto locale
   function eliminaAuto(id) {
-    if(confirm("Sei sicuro di voler eliminare questa vettura e tutto il suo storico rifornimenti?")) {
+    if(confirm("Eliminare la vettura e lo storico?")) {
       mieAuto = mieAuto.filter(a => a.id !== id);
       mieiRifornimenti = mieiRifornimenti.filter(r => r.autoId !== id);
       localStorage.setItem('fc_cars', JSON.stringify(mieAuto));
@@ -700,66 +647,48 @@ select.f-input{background:var(--panel2);padding:.6rem;border-radius:6px;border:1
     }
   }
 
-  // Logica client-side per inviare il file immagine e ricevere il JSON dei dati estratti da Gemini
   async function processOcrFile(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
-    
     const statusEl = document.getElementById('ocrStatus');
     statusEl.style.display = 'block';
-    statusEl.innerText = "Analisi dello scontrino con Gemini in corso...";
 
-    // Conversione del file in Base64 per la trasmissione corretta via rete
     const reader = new FileReader();
     reader.onload = async function(e) {
       const base64Data = e.target.result.split(',')[1];
-      
       try {
         const response = await fetch(`${WORKER_URL}/analyze`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ image: base64Data })
         });
-
         if (response.ok) {
           const resJson = await response.json();
-          // Il worker estrae un testo JSON annidato inviato da Gemini
           const datiScontrino = JSON.parse(resJson.text);
-          
           if (datiScontrino && datiScontrino.litri && datiScontrino.euro) {
             document.getElementById('gQta').value = datiScontrino.litri;
             document.getElementById('gSpesa').value = datiScontrino.euro;
-            alert("Analisi completata! I valori di litri ed euro sono stati inseriti nel form.");
-          } else {
-            alert("L'immagine non è stata decifrata chiaramente. Prova ad inserire i dati a mano.");
           }
-        } else {
-          alert("Si è verificato un errore di elaborazione da parte del server.");
         }
       } catch(err) {
         console.error("Errore OCR:", err);
-        alert("Impossibile connettersi al servizio di analisi OCR.");
       } finally {
         statusEl.style.display = 'none';
         closePop('popOcr');
-        input.value = ''; // Pulisce il selettore di file
+        input.value = '';
       }
     };
     reader.readAsDataURL(file);
   }
 
-  // Funzione legata all'evento di input della barra di ricerca nella tab community
   function filterCommResults() {
     const query = document.getElementById('commSearch').value.toLowerCase();
     const datiFiltrati = {};
     Object.keys(datiCommunityGlobali).forEach(chiave => {
-      if (chiave.toLowerCase().includes(query)) {
-        datiFiltrati[chiave] = datiCommunityGlobali[chiave];
-      }
+      if (chiave.toLowerCase().includes(query)) datiFiltrati[chiave] = datiCommunityGlobali[chiave];
     });
     disegnaCommunity(datiFiltrati);
   }
 </script>
-
 </body>
 </html>
