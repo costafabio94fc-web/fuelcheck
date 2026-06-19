@@ -1065,14 +1065,28 @@ function setTodayDate() {
 
 // ── Contributo automatico alla community ad ogni rifornimento ─
 async function pushToComm(riforn, idx) {
-  if (!gCarInfo.marca || !gCarInfo.modello) return; // auto non configurata
+	console.log("Inizio pushToComm. Dati auto:", gCarInfo);
+  if (!gCarInfo.marca || !gCarInfo.modello) {console.warn("Bloccato: Marca o Modello mancanti in gCarInfo!");
+    return; }// auto non configurata
   if (idx === undefined) idx = gRiforn.indexOf(riforn);
-  if (idx < 1) return; // primo rifornimento, nessun consumo calcolabile
+  if (idx < 1) {
+    console.warn("Bloccato: È il primo rifornimento, impossibile calcolare il consumo.");
+    return;
+  } // primo rifornimento, nessun consumo calcolabile
   const prev = gRiforn[idx - 1];
   const km   = riforn.odo - prev.odo;
-  if (km <= 0 || riforn.qta <= 0) return;
+  console.log(`Km percorsi dall'ultimo rifornimento: ${km}, Litri inseriti: ${riforn.qta}`);
+  if (km <= 0 || riforn.qta <= 0) {
+    console.warn("Bloccato: Km o Qta minori o uguali a zero.");
+    return;
+  }
   const cons = riforn.qta / km * 100;
-  if (cons < 1 || cons > 60) return; // sanity check
+  console.log("Consumo calcolato:", cons);
+  if (cons < 1 || cons > 60) {
+    console.warn("Bloccato: Il consumo non passa il sanity check (deve essere tra 1 e 60).");
+    return;
+  } // sanity check
+  console.log("Tutti i controlli superati! Provo a inviare...");
   await loadCommData();
   const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
   if (!commContribs[key]) commContribs[key] = [];
