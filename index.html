@@ -1288,7 +1288,14 @@ function addRifornimento() {
   saveGarageData();
   // Contribuisci automaticamente alla community — usa l'indice post-sort
   const rIdx = gRiforn.indexOf(r);
-  if (rIdx > 0) pushToComm(r, rIdx);
+  if (rIdx > 0) {
+    pushToComm(r, rIdx).then(() => {
+      // Forza il download dei dati freschi dal server e ridisegna la community
+      loadCommData().then(() => {
+        if (typeof renderCommunity === 'function') renderCommunity();
+      });
+    });
+  }
   // Reset form (mantieni data)
   document.getElementById('rOdo').value = '';
   document.getElementById('rQta').value = '';
