@@ -1288,42 +1288,71 @@ async function analyzePhoto() {
 }
 
 function addRifornimento() {
+	console.log("FUNZIONE ADD RIFORNIMENTO AVVIATA");
   const data   = document.getElementById('rData').value;
+
   const odo    = parseFloat(document.getElementById('rOdo').value);
+
   const qta    = parseFloat(document.getElementById('rQta').value);
+
   const prezzo = parseFloat(document.getElementById('rPrezzo').value);
 
   if (!data || isNaN(odo) || isNaN(qta) || isNaN(prezzo)) {
+
     alert('Compila tutti i campi prima di aggiungere il rifornimento.');
+
     return;
+
   }
 
   const r = {id: Date.now(), data, odo, qta, prezzo};
+
   gRiforn.push(r);
+
   gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
-  
+
   saveGarageData();
 
-  // Contribuisci automaticamente alla community
+  // Contribuisci automaticamente alla community — usa l'indice post-sort
+
   const rIdx = gRiforn.indexOf(r);
+
+  const rIdx = gRiforn.length - 1;
+
   if (rIdx > 0) {
-      console.log("Inviando alla community...");
-      pushToComm(r, rIdx)
+
+      // Invia il consumo alla community
+
+      pushToComm(gRiforn[rIdx], rIdx)
+
         .then(() => {
+
            console.log("Inviato alla community!");
-           return loadCommData();
+
+           loadCommData().then(() => {
+
+             if (typeof renderCommunity === 'function') renderCommunity();
+
+           });
+
         })
-        .then(() => {
-           if (typeof renderCommunity === 'function') renderCommunity();
-        })
+
         .catch(err => console.error("Errore invio:", err));
+
   }
 
-  // Reset form e aggiornamento UI
+}
+
+  // Reset form (mantieni data)
+
   document.getElementById('rOdo').value = '';
+
   document.getElementById('rQta').value = '';
+
   document.getElementById('rPrezzo').value = '';
+
   renderGarage();
+
 }
 
 function deleteRifornimento(id) {
