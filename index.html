@@ -1064,10 +1064,9 @@ function setTodayDate() {
 }
 
 // ── Contributo automatico alla community ad ogni rifornimento ─
-async function pushToComm(riforn) {
+async function pushToComm(riforn, idx) {
   if (!gCarInfo.marca || !gCarInfo.modello) return; // auto non configurata
-  // Calcola consumo rispetto al rifornimento precedente
-  const idx = gRiforn.indexOf(riforn);
+  if (idx === undefined) idx = gRiforn.indexOf(riforn);
   if (idx < 1) return; // primo rifornimento, nessun consumo calcolabile
   const prev = gRiforn[idx - 1];
   const km   = riforn.odo - prev.odo;
@@ -1287,8 +1286,9 @@ function addRifornimento() {
   gRiforn.push(r);
   gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
   saveGarageData();
-  // Contribuisci automaticamente alla community
-  pushToComm(r);
+  // Contribuisci automaticamente alla community — usa l'indice post-sort
+  const rIdx = gRiforn.indexOf(r);
+  if (rIdx > 0) pushToComm(r, rIdx);
   // Reset form (mantieni data)
   document.getElementById('rOdo').value = '';
   document.getElementById('rQta').value = '';
