@@ -1065,15 +1065,18 @@ function setTodayDate() {
 
 // ── Contributo automatico alla community ad ogni rifornimento ─
 async function pushToComm(riforn, prevOverride) {
-  if (!gCarInfo.marca || !gCarInfo.modello) return;
+  console.log('[pushToComm] chiamata, odo:', riforn.odo, 'marca:', gCarInfo.marca);
+  if (!gCarInfo.marca || !gCarInfo.modello) { console.log('[pushToComm] no auto'); return; }
   // Trova il rifornimento precedente per odometro
   const prev = prevOverride || gRiforn.filter(x => x.odo < riforn.odo && x.id !== riforn.id)
                                        .sort((a,b) => b.odo - a.odo)[0] || null;
-  if (!prev) return;
+  console.log('[pushToComm] prev:', prev);
+  if (!prev) { console.log('[pushToComm] nessun prev, uscita'); return; }
   const km = riforn.odo - prev.odo;
-  if (km <= 0 || riforn.qta <= 0) return;
   const cons = riforn.qta / km * 100;
-  if (cons < 1 || cons > 60) return;
+  console.log('[pushToComm] km:', km, 'cons:', cons);
+  if (km <= 0 || riforn.qta <= 0) { console.log('[pushToComm] km/qta non validi'); return; }
+  if (cons < 1 || cons > 60) { console.log('[pushToComm] cons fuori range:', cons); return; }
   await loadCommData();
   const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
   const contrib = {
