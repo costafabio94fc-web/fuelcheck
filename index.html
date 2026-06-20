@@ -1077,7 +1077,9 @@ async function pushToComm(riforn, prevOverride) {
   console.log('[pushToComm] km:', km, 'cons:', cons);
   if (km <= 0 || riforn.qta <= 0) { console.log('[pushToComm] km/qta non validi'); return; }
   if (cons < 1 || cons > 60) { console.log('[pushToComm] cons fuori range:', cons); return; }
-  await loadCommData();
+  console.log('[pushToComm] chiamo loadCommData...');
+  try { await loadCommData(); } catch(e) { console.error('[pushToComm] loadCommData error:', e); return; }
+  console.log('[pushToComm] loadCommData OK, chiamo pushCommContrib...');
   const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
   const contrib = {
     marca:    gCarInfo.marca,
