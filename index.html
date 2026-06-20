@@ -1064,16 +1064,18 @@ function setTodayDate() {
 }
 
 // ── Contributo automatico alla community ad ogni rifornimento ─
-async function pushToComm(riforn, prev) {
-  if (!gCarInfo.marca || !gCarInfo.modello) return; // auto non configurata
-  if (!prev) return; // nessun rifornimento precedente
-  const km   = riforn.odo - prev.odo;
+async function pushToComm(riforn, prevOverride) {
+  if (!gCarInfo.marca || !gCarInfo.modello) return;
+  // Trova il rifornimento precedente per odometro
+  const prev = prevOverride || gRiforn.filter(x => x.odo < riforn.odo && x.id !== riforn.id)
+                                       .sort((a,b) => b.odo - a.odo)[0] || null;
+  if (!prev) return;
+  const km = riforn.odo - prev.odo;
   if (km <= 0 || riforn.qta <= 0) return;
   const cons = riforn.qta / km * 100;
-  if (cons < 1 || cons > 60) return; // sanity check
+  if (cons < 1 || cons > 60) return;
   await loadCommData();
   const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
-  if (!commContribs[key]) commContribs[key] = [];
   const contrib = {
     marca:    gCarInfo.marca,
     modello:  gCarInfo.modello,
@@ -1281,16 +1283,12 @@ async function addRifornimento() {
     return;
   }
   const r = {id: Date.now(), data, odo, qta, prezzo};
-  // Cerca il rifornimento precedente per odometro PRIMA di aggiungere
-  const prevRif = gRiforn.filter(x => x.odo < odo).sort((a,b) => b.odo - a.odo)[0] || null;
   gRiforn.push(r);
   gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
   saveGarageData();
   // Contribuisci automaticamente alla community
-  if (prevRif) {
-    try { await pushToComm(r, prevRif); }
-    catch(e) { console.warn('pushToComm error:', e); }
-  }
+  try { await pushToComm(r); }
+  catch(e) { console.warn('pushToComm error:', e); }
   // Reset form (mantieni data)
   document.getElementById('rOdo').value = '';
   document.getElementById('rQta').value = '';
