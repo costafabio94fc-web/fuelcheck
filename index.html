@@ -1064,29 +1064,13 @@ function setTodayDate() {
 }
 
 // ── Contributo automatico alla community ad ogni rifornimento ─
-async function pushToComm(riforn, idx) {
-	console.log("Inizio pushToComm. Dati auto:", gCarInfo);
-  if (!gCarInfo.marca || !gCarInfo.modello) {console.warn("Bloccato: Marca o Modello mancanti in gCarInfo!");
-    return; }// auto non configurata
-  if (idx === undefined) idx = gRiforn.indexOf(riforn);
-  if (idx < 1) {
-    console.warn("Bloccato: È il primo rifornimento, impossibile calcolare il consumo.");
-    return;
-  } // primo rifornimento, nessun consumo calcolabile
-  const prev = gRiforn[idx - 1];
+async function pushToComm(riforn, prev) {
+  if (!gCarInfo.marca || !gCarInfo.modello) return; // auto non configurata
+  if (!prev) return; // nessun rifornimento precedente
   const km   = riforn.odo - prev.odo;
-  console.log(`Km percorsi dall'ultimo rifornimento: ${km}, Litri inseriti: ${riforn.qta}`);
-  if (km <= 0 || riforn.qta <= 0) {
-    console.warn("Bloccato: Km o Qta minori o uguali a zero.");
-    return;
-  }
+  if (km <= 0 || riforn.qta <= 0) return;
   const cons = riforn.qta / km * 100;
-  console.log("Consumo calcolato:", cons);
-  if (cons < 1 || cons > 60) {
-    console.warn("Bloccato: Il consumo non passa il sanity check (deve essere tra 1 e 60).");
-    return;
-  } // sanity check
-  console.log("Tutti i controlli superati! Provo a inviare...");
+  if (cons < 1 || cons > 60) return; // sanity check
   await loadCommData();
   const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
   if (!commContribs[key]) commContribs[key] = [];
@@ -1285,38 +1269,29 @@ async function analyzePhoto() {
     console.error(err);
   }
   btn.disabled = false;
+}
 
 function addRifornimento() {
   const data   = document.getElementById('rData').value;
   const odo    = parseFloat(document.getElementById('rOdo').value);
   const qta    = parseFloat(document.getElementById('rQta').value);
   const prezzo = parseFloat(document.getElementById('rPrezzo').value);
-
   if (!data || isNaN(odo) || isNaN(qta) || isNaN(prezzo)) {
     alert('Compila tutti i campi prima di aggiungere il rifornimento.');
     return;
   }
-
   const r = {id: Date.now(), data, odo, qta, prezzo};
+  // Cerca il rifornimento precedente per odometro PRIMA di aggiungere
+  const prevRif = gRiforn.filter(x => x.odo < odo).sort((a,b) => b.odo - a.odo)[0] || null;
   gRiforn.push(r);
   gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
-  
   saveGarageData();
-
   // Contribuisci automaticamente alla community
-  const rIdx = gRiforn.indexOf(r);
-  if (rIdx > 0) {
-      console.log("Inviando alla community...");
-      pushToComm(r, rIdx)
-        .then(() => console.log("Inviato alla community!"))
-        .catch(err => console.error("Errore invio:", err));
-  }
-
-  // Reset form
+  if (prevRif) pushToComm(r, prevRif);
+  // Reset form (mantieni data)
   document.getElementById('rOdo').value = '';
   document.getElementById('rQta').value = '';
   document.getElementById('rPrezzo').value = '';
-  
   renderGarage();
 }
 
