@@ -1096,9 +1096,12 @@ async function pushToComm(riforn, prevOverride) {
   };
   commContribs[key] = commContribs[key] || [];
   commContribs[key].push(contrib);
-  await pushCommContrib(key, contrib);
+  console.log('[pushToComm] chiamo pushCommContrib, key:', key);
+  try { await pushCommContrib(key, contrib); console.log('[pushToComm] pushCommContrib OK!'); }
+  catch(e) { console.error('[pushToComm] pushCommContrib error:', e); }
   renderCommResults();
   updateCommCount();
+  console.log('[pushToComm] DONE');
 }
 
 // ── PROXY URL per analisi foto ────────────────────────────────
