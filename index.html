@@ -1271,7 +1271,7 @@ async function analyzePhoto() {
   btn.disabled = false;
 }
 
-function addRifornimento() {
+async function addRifornimento() {
   const data   = document.getElementById('rData').value;
   const odo    = parseFloat(document.getElementById('rOdo').value);
   const qta    = parseFloat(document.getElementById('rQta').value);
@@ -1287,7 +1287,10 @@ function addRifornimento() {
   gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
   saveGarageData();
   // Contribuisci automaticamente alla community
-  if (prevRif) pushToComm(r, prevRif);
+  if (prevRif) {
+    try { await pushToComm(r, prevRif); }
+    catch(e) { console.warn('pushToComm error:', e); }
+  }
   // Reset form (mantieni data)
   document.getElementById('rOdo').value = '';
   document.getElementById('rQta').value = '';
