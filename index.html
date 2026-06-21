@@ -1064,6 +1064,33 @@ function setTodayDate() {
 }
 
 // ── Contributo automatico alla community ad ogni rifornimento ─
+async function addRifornimento() {
+  const data   = document.getElementById('rData').value;
+  const odo    = parseFloat(document.getElementById('rOdo').value);
+  const qta    = parseFloat(document.getElementById('rQta').value);
+  const prezzo = parseFloat(document.getElementById('rPrezzo').value);
+  if (!data || isNaN(odo) || isNaN(qta) || isNaN(prezzo)) {
+    alert('Compila tutti i campi prima di aggiungere il rifornimento.');
+    return;
+  }
+  const r = {id: Date.now(), data, odo, qta, prezzo};
+  const prevRif = gRiforn.filter(x => x.odo < odo).sort((a,b) => b.odo - a.odo)[0] || null;
+  gRiforn.push(r);
+  gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
+  saveGarageData();
+  try { await pushToComm(r, prevRif); } catch(e) { console.warn('pushToComm error:', e); }
+  document.getElementById('rOdo').value = '';
+  document.getElementById('rQta').value = '';
+  document.getElementById('rPrezzo').value = '';
+  renderGarage();
+}
+
+function deleteRifornimento(id) {
+  gRiforn = gRiforn.filter(r => r.id !== id);
+  saveGarageData();
+  renderGarage();
+}
+
 async function pushToComm(riforn, prevOverride) {
   if (!gCarInfo.marca || !gCarInfo.modello) return;
   const prev = prevOverride || gRiforn.filter(x => x.odo < riforn.odo && x.id !== riforn.id)
