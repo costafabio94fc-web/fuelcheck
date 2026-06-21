@@ -1487,3 +1487,1492 @@ render();
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FuelCheck — Dati reali Motor1.it</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#E8321A;--dark:#0f0f0f;--panel:#181818;--panel2:#222;--border:rgba(255,255,255,0.07);--muted:rgba(255,255,255,0.38);--fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif}
+body{background:var(--dark);color:#f0ede8;font-family:var(--fb);min-height:100vh}
+.header{border-bottom:1px solid var(--border);padding:.9rem 1.4rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-family:var(--fd);font-size:21px;font-weight:800;letter-spacing:.04em}
+.logo span{color:var(--red)}
+.header-meta{font-size:10px;color:var(--muted);text-align:right;line-height:1.5}
+.header-meta a{color:rgba(232,50,26,.65);text-decoration:none}
+.verified-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;background:rgba(16,185,129,.12);color:#5be898;border:1px solid rgba(16,185,129,.2);border-radius:3px;padding:2px 6px;letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.profilo-area{padding:1rem 1.4rem;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.profilo-title{font-family:var(--fd);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.profilo-label{font-size:11px;color:var(--muted);letter-spacing:.04em}
+.profilo-input{background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:#f0ede8;font-family:var(--fb);font-size:14px;padding:8px 12px;outline:none;transition:border-color .2s;width:100%}
+.profilo-input:focus{border-color:var(--red)}
+.profilo-top{margin-bottom:12px}
+.prezzi-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.prezzi-grid-2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
+.prezzo-card{background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;transition:border-color .2s}
+.prezzo-card.used{border-color:rgba(232,50,26,.4);background:rgba(232,50,26,.05)}
+.prezzo-card-label{font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prezzo-card.used .prezzo-card-label{color:var(--red)}
+.prezzo-card-input{background:transparent;border:none;color:#f0ede8;font-family:var(--fd);font-size:18px;font-weight:700;width:100%;outline:none;padding:0}
+.prezzo-card-input::-webkit-inner-spin-button{display:none}
+.prezzo-card-unit{font-size:10px;color:var(--muted);margin-top:1px}
+.slider-wrap{display:flex;flex-direction:column;gap:0}
+.slider-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.slider-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--panel2);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--red);cursor:pointer}
+.slider-val{font-family:var(--fd);font-size:14px;font-weight:700;color:#f0ede8;min-width:38px;text-align:right}
+.search-area{padding:.9rem 1.4rem .7rem;border-bottom:1px solid var(--border);position:relative}
+.search-wrap{position:relative}
+.si{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:7px;color:#f0ede8;font-family:var(--fb);font-size:14px;padding:10px 14px;outline:none;transition:border-color .2s}
+.si:focus{border-color:var(--red)}
+.si::placeholder{color:var(--muted)}
+.sug-box{position:absolute;top:calc(100% + 5px);left:0;right:0;background:#1e1e1e;border:1px solid rgba(255,255,255,.13);border-radius:9px;z-index:200;overflow:hidden;box-shadow:0 10px 36px rgba(0,0,0,.75);max-height:320px;overflow-y:auto}
+.sug-box.hidden{display:none}
+.sug-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .1s}
+.sug-item:last-child{border-bottom:none}
+.sug-item:hover,.sug-item.active{background:rgba(255,255,255,.07)}
+.sug-icon{width:28px;height:28px;border-radius:5px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sug-main{flex:1;min-width:0}
+.sug-name{font-size:13px;font-weight:500;color:#f0ede8}
+.sug-name em{color:var(--red);font-style:normal;font-weight:600}
+.sug-sub{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sug-val{display:inline-flex;align-items:center;gap:5px;font-family:var(--fd);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;flex-shrink:0}
+.sug-empty{padding:10px 14px;font-size:12px;color:var(--muted)}
+.cars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1px;background:var(--border)}
+.car-card{background:var(--dark);padding:1.2rem 1.4rem;position:relative;transition:background .15s}
+.car-card:hover{background:var(--panel)}
+.car-remove{position:absolute;top:11px;right:13px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
+.car-remove:hover{color:var(--red)}
+.fuel-badge{display:inline-block;font-size:9px;font-family:var(--fd);letter-spacing:.07em;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-bottom:7px}
+.fd2{background:rgba(59,130,246,.14);color:#7bb3f0}
+.fb2{background:rgba(245,158,11,.14);color:#f5c060}
+.fh{background:rgba(16,185,129,.14);color:#5be898}
+.fp{background:rgba(168,85,247,.14);color:#c084fc}
+.fe{background:rgba(6,182,212,.14);color:#67e8f9}
+.fg{background:rgba(251,146,60,.14);color:#fb923c}
+.car-head{display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.car-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.car-name{font-family:var(--fd);font-size:18px;font-weight:700;padding-right:22px;line-height:1.1}
+.car-version{font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.tratti{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.tratto{background:var(--panel2);border-radius:7px;padding:10px 9px;text-align:center;border-bottom:2px solid transparent}
+.tratto-label{font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+.tratto-val{font-family:var(--fd);font-size:22px;font-weight:800;line-height:1}
+.tratto-val small{font-size:11px;font-weight:400;color:var(--muted)}
+.tratto-val.nd{font-size:14px;color:var(--muted)}
+.tratto-km{font-size:10px;color:var(--muted);margin-top:3px}
+.costo-box{background:rgba(232,50,26,.07);border:1px solid rgba(232,50,26,.18);border-radius:7px;padding:11px 13px;margin-bottom:7px}
+.costo-label{font-size:10px;color:rgba(232,50,26,.8);letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px}
+.costo-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.costo-item{text-align:center}
+.costo-item-label{font-size:9px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.costo-item-val{font-family:var(--fd);font-size:20px;font-weight:800;line-height:1}
+.costo-item-val small{font-size:10px;font-weight:400;color:var(--muted)}
+.costo-prezzo-note{font-size:10px;color:var(--muted);margin-top:6px;text-align:center}
+.ev-note{font-size:10px;color:#67e8f9;margin-top:4px;text-align:center;opacity:.7}
+.source-note{font-size:10px;color:rgba(255,255,255,.18);font-style:italic}
+.source-note a{color:rgba(232,50,26,.55);text-decoration:none}
+.empty-state{padding:3rem 1.5rem;text-align:center}
+.empty-icon{font-size:34px;margin-bottom:10px;opacity:.25}
+.empty-title{font-family:var(--fd);font-size:17px;font-weight:600;color:rgba(255,255,255,.45);margin-bottom:5px}
+.empty-sub{font-size:12px;color:var(--muted)}
+.compare-bar{border-top:1px solid var(--border);padding:.9rem 1.4rem}
+.compare-label{font-size:11px;color:var(--muted);text-transform:uppercase}
+.chart-area{padding:1.4rem;border-top:1px solid var(--border)}
+.chart-title{font-family:var(--fd);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.chart-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.chart-tab{font-family:var(--fd);font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:4px 12px;border-radius:4px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;background:none}
+.chart-tab.active{background:var(--red);border-color:var(--red);color:#fff}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.bar-name{font-size:12px;color:rgba(255,255,255,.65);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;background:var(--panel2);border-radius:2px;height:9px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width .55s cubic-bezier(.4,0,.2,1)}
+.bar-num{font-family:var(--fd);font-size:13px;font-weight:700;min-width:68px;text-align:right}
+.bar-num small{font-size:9px;color:var(--muted);font-weight:400}
+.mimit-row{margin-top:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.mimit-controls{display:flex;gap:7px;align-items:center}
+.mimit-select{flex:1;min-width:0;font-size:13px;padding:7px 10px;cursor:pointer}
+.mimit-btn{flex-shrink:0;background:rgba(232,50,26,.15);border:1px solid rgba(232,50,26,.35);border-radius:6px;color:var(--red);font-family:var(--fb);font-size:12px;font-weight:500;padding:7px 12px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.mimit-btn:hover{background:rgba(232,50,26,.28);border-color:var(--red)}
+.mimit-btn:active{transform:scale(.97)}
+.mimit-btn:disabled{opacity:.45;cursor:not-allowed}
+.mimit-status-wrap{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mimit-status{font-size:11px;min-height:16px;transition:color .3s}
+.mimit-link{font-size:10px;color:rgba(232,50,26,.55);text-decoration:none;white-space:nowrap}
+.mimit-link:hover{color:var(--red)}
+.prezzo-updated{animation:flashGreen .8s ease}
+@keyframes flashGreen{0%{border-color:rgba(91,232,152,.7);background:rgba(91,232,152,.1)}100%{border-color:rgba(232,50,26,.4);background:rgba(232,50,26,.05)}}
+
+/* ── NAV TABS ── */
+.nav-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--dark);position:sticky;top:0;z-index:100}
+.nav-tab{flex:1;font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:13px 0;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .18s;background:none;border-top:none;border-left:none;border-right:none}
+.nav-tab.active{color:#f0ede8;border-bottom-color:var(--red)}
+.page{display:none}.page.active{display:block}
+
+/* ── GARAGE LAYOUT ── */
+.garage-area{padding:1.2rem 1.4rem;max-width:800px;margin:0 auto}
+.garage-section{margin-bottom:1.6rem}
+.garage-title{font-family:var(--fd);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.garage-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── AUTO SELECTOR ── */
+.car-selector-wrap{position:relative;margin-bottom:14px}
+.car-selector{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:7px;color:#f0ede8;font-family:var(--fb);font-size:14px;padding:10px 14px;outline:none;transition:border-color .2s;cursor:pointer;appearance:none;-webkit-appearance:none}
+.car-selector:focus{border-color:var(--red)}
+.car-selector-chevron{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:12px}
+.car-custom-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.car-custom-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.g-input{background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:#f0ede8;font-family:var(--fb);font-size:16px;padding:9px 12px;outline:none;transition:border-color .2s;width:100%}
+.g-input:focus{border-color:var(--red)}
+.g-input::placeholder{color:var(--muted)}
+.fuel-selector-wrap{margin-bottom:14px}
+.fuel-chips{display:flex;gap:6px;flex-wrap:wrap}
+.fuel-chip{font-family:var(--fd);font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:5px 12px;border-radius:4px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;background:none}
+.fuel-chip.sel-diesel{background:rgba(59,130,246,.22);border-color:rgba(59,130,246,.5);color:#7bb3f0}
+.fuel-chip.sel-benzina{background:rgba(245,158,11,.2);border-color:rgba(245,158,11,.45);color:#f5c060}
+.fuel-chip.sel-gpl{background:rgba(251,146,60,.18);border-color:rgba(251,146,60,.4);color:#fb923c}
+.fuel-chip.sel-metano{background:rgba(168,85,247,.18);border-color:rgba(168,85,247,.4);color:#c084fc}
+.fuel-chip.sel-elettrica{background:rgba(6,182,212,.18);border-color:rgba(6,182,212,.4);color:#67e8f9}
+
+/* ── FORM RIFORNIMENTO ── */
+.riforn-form{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.2rem}
+.riforn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.riforn-grid-4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}@media(min-width:500px){.riforn-grid-4{grid-template-columns:1fr 1fr 1fr 1fr}}
+.g-label{font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+.btn-add{width:100%;background:var(--red);border:none;border-radius:7px;color:#fff;font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:15px;cursor:pointer;transition:opacity .18s}
+.btn-add:hover{opacity:.85}
+.btn-add:active{transform:scale(.98)}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1.2rem}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;text-align:center}
+.stat-val{font-family:var(--fd);font-size:24px;font-weight:800;line-height:1;margin-bottom:2px}
+.stat-label{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+/* ── TABELLA ── */
+.riforn-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);margin-bottom:1.2rem}
+.riforn-table{width:100%;border-collapse:collapse;font-size:12px}
+.riforn-table th{font-family:var(--fd);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--panel);font-weight:600}
+.riforn-table td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);color:#f0ede8;vertical-align:middle}
+.riforn-table tr:last-child td{border-bottom:none}
+.riforn-table tr:hover td{background:rgba(255,255,255,.03)}
+.btn-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px;line-height:1;transition:color .15s}
+.btn-del:hover{color:#f87171}
+.cons-badge{font-family:var(--fd);font-size:11px;font-weight:700;padding:2px 6px;border-radius:3px;background:rgba(232,50,26,.12);color:var(--red)}
+.cons-badge.good{background:rgba(16,185,129,.12);color:#5be898}
+
+/* ── GRAFICI SVG ── */
+.chart-svg-wrap{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.2rem;overflow-x:auto}
+.chart-svg-wrap svg{display:block;width:100%;height:auto}
+
+/* ── EMPTY GARAGE ── */
+.garage-empty{text-align:center;padding:2.5rem 1rem;color:var(--muted)}
+.garage-empty-icon{font-size:32px;opacity:.3;margin-bottom:8px}
+.garage-empty-text{font-size:13px}
+
+
+/* ── COMMUNITY ── */
+.comm-area{padding:1.2rem 1.4rem;max-width:800px;margin:0 auto}
+.comm-hero{background:linear-gradient(135deg,rgba(232,50,26,.12),rgba(232,50,26,.04));border:1px solid rgba(232,50,26,.2);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.4rem;text-align:center}
+.comm-hero-title{font-family:var(--fd);font-size:20px;font-weight:800;color:#f0ede8;margin-bottom:4px}
+.comm-hero-sub{font-size:12px;color:var(--muted)}
+.comm-count{font-family:var(--fd);font-size:32px;font-weight:800;color:var(--red);line-height:1}
+
+/* form contribuzione */
+.comm-form{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.4rem}
+.comm-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.comm-form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.comm-note{font-size:11px;color:var(--muted);margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:5px}
+.btn-submit{width:100%;background:rgba(91,232,152,.15);border:1px solid rgba(91,232,152,.35);border-radius:7px;color:#5be898;font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:11px;cursor:pointer;transition:all .2s}
+.btn-submit:hover{background:rgba(91,232,152,.28)}
+.btn-submit:active{transform:scale(.98)}
+.submit-feedback{font-size:12px;text-align:center;margin-top:8px;min-height:18px;transition:color .3s}
+
+/* risultati per auto */
+.comm-car-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:10px}
+.comm-car-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.comm-car-name{font-family:var(--fd);font-size:14px;font-weight:700;color:#f0ede8}
+.comm-car-count{font-size:11px;color:var(--muted);font-family:var(--fd)}
+.comm-averages{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.comm-avg-box{background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:9px 10px;text-align:center}
+.comm-avg-val{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--red);line-height:1;margin-bottom:2px}
+.comm-avg-label{font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase}
+.comm-vs{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-bottom:10px;padding:7px 10px;background:rgba(255,255,255,.03);border-radius:6px}
+.comm-vs-val{font-family:var(--fd);font-weight:700}
+.comm-vs-val.better{color:#5be898}
+.comm-vs-val.worse{color:#f87171}
+
+/* mini grafico a bolle per i contributi individuali */
+.comm-dots{display:flex;flex-wrap:wrap;gap:5px;padding:8px 0}
+.comm-dot{width:10px;height:10px;border-radius:50%;background:rgba(232,50,26,.5);title:attr(title);cursor:default}
+.comm-dot:hover{background:var(--red)}
+
+/* filtro ricerca */
+.comm-search-wrap{position:relative;margin-bottom:1rem}
+.comm-search{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:7px;color:#f0ede8;font-family:var(--fb);font-size:14px;padding:10px 14px;outline:none;transition:border-color .2s}
+.comm-search:focus{border-color:var(--red)}
+.comm-search::placeholder{color:var(--muted)}
+.comm-empty{text-align:center;padding:2.5rem;color:var(--muted)}
+.comm-empty-icon{font-size:32px;opacity:.3;margin-bottom:8px}
+.comm-loading{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+
+/* badge Motor1 vs Community nella card confronto */
+.motor1-badge{font-size:9px;color:var(--muted);font-family:var(--fd);letter-spacing:.05em}
+.comm-badge-card{display:inline-flex;align-items:center;gap:4px;font-family:var(--fd);font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;background:rgba(91,232,152,.12);border:1px solid rgba(91,232,152,.25);color:#5be898;margin-top:4px}
+
+
+/* ── FOTO DISPLAY ── */
+.photo-btn-wrap{margin-bottom:10px}
+.btn-photo{width:100%;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);border-radius:7px;color:#a5b4fc;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:14px 10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-photo:hover{background:rgba(99,102,241,.28);border-color:#a5b4fc}
+.btn-photo:active{transform:scale(.98)}
+.btn-photo:disabled{opacity:.45;cursor:not-allowed}
+.btn-photo-odo{width:100%;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);border-radius:7px;color:#5be898;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:14px 10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.btn-photo-odo:hover{background:rgba(16,185,129,.22);border-color:#5be898}
+.btn-photo-odo:active{transform:scale(.98)}
+.btn-photo-odo:disabled{opacity:.45;cursor:not-allowed}
+.photo-preview-odo{display:none;margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative}
+.photo-preview-odo img{width:100%;max-height:160px;object-fit:contain;display:block;background:#111}
+.photo-odo-status{font-size:12px;text-align:center;min-height:18px;margin-bottom:6px;transition:color .3s}
+.photo-preview{display:none;margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative}
+.photo-preview img{width:100%;max-height:220px;object-fit:contain;display:block;background:#111}
+.photo-preview-remove{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:24px;height:24px;color:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
+.photo-status{font-size:12px;text-align:center;min-height:18px;margin-bottom:6px;transition:color .3s}
+.photo-result{display:none;background:rgba(91,232,152,.07);border:1px solid rgba(91,232,152,.2);border-radius:7px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#5be898}
+
+
+/* ── API KEY ── */
+.apikey-wrap{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.apikey-input{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:#f0ede8;font-family:var(--fb);font-size:13px;padding:8px 12px;outline:none;transition:border-color .2s;letter-spacing:.04em}
+.apikey-input:focus{border-color:rgba(99,102,241,.6)}
+.apikey-input::placeholder{color:var(--muted);letter-spacing:0}
+.apikey-status{font-size:18px;flex-shrink:0;line-height:1}
+.apikey-save{background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);border-radius:6px;color:#a5b4fc;font-family:var(--fd);font-size:11px;font-weight:600;padding:8px 12px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.apikey-save:hover{background:rgba(99,102,241,.28)}
+.apikey-note{font-size:10px;color:var(--muted);margin-bottom:10px}
+.apikey-note a{color:rgba(165,180,252,.6);text-decoration:none}
+.apikey-note a:hover{color:#a5b4fc}
+
+</style>
+</head>
+<body>
+<div class="header">
+  <div><div class="logo">FUEL<span>CHECK</span></div><div class="verified-badge" id="carCount">✓ 143 auto · prezzi MIMIT live</div></div>
+  <div class="header-meta">Percorso Roma–Forlì 360km<br><a href="https://it.motor1.com/reviews/category/consumi-reali/" target="_blank">→ fonte originale</a></div>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchPage('compare')">⛽ Confronto</button>
+  <button class="nav-tab" onclick="switchPage('garage')">🚗 Il mio garage</button>
+  <button class="nav-tab" onclick="switchPage('community')">👥 Community</button>
+</div>
+<div id="page-compare" class="page active">
+<div class="profilo-area">
+  <div class="profilo-title">⚙ Il tuo profilo di guida</div>
+  <div class="profilo-top">
+    <div class="profilo-label" style="margin-bottom:4px">Km percorsi all'anno</div>
+    <input class="profilo-input" id="kmAnno" type="number" min="1000" max="200000" step="500" value="15000" oninput="render()" style="max-width:200px"/>
+  </div>
+  <div class="profilo-label" style="margin-bottom:7px">Prezzi energia</div>
+  <div class="prezzi-grid">
+    <div class="prezzo-card" id="card-benzina"><div class="prezzo-card-label">⛽ Benzina / Ibridi</div><input class="prezzo-card-input" id="p-benzina" type="number" min="0.5" max="5" step="0.01" value="1.947" oninput="render()"/><div class="prezzo-card-unit">€ / litro</div></div>
+    <div class="prezzo-card" id="card-diesel"><div class="prezzo-card-label">🛢 Diesel</div><input class="prezzo-card-input" id="p-diesel" type="number" min="0.5" max="5" step="0.01" value="1.977" oninput="render()"/><div class="prezzo-card-unit">€ / litro</div></div>
+  </div>
+  <div class="prezzi-grid-2">
+    <div class="prezzo-card" id="card-gpl"><div class="prezzo-card-label">💧 GPL</div><input class="prezzo-card-input" id="p-gpl" type="number" min="0.3" max="2" step="0.001" value="0.808" oninput="render()"/><div class="prezzo-card-unit">€ / litro</div></div>
+    <div class="prezzo-card" id="card-metano"><div class="prezzo-card-label">🌿 Metano</div><input class="prezzo-card-input" id="p-metano" type="number" min="0.5" max="5" step="0.001" value="1.528" oninput="render()"/><div class="prezzo-card-unit">€ / kg</div></div>
+    <div class="prezzo-card" id="card-elettrica"><div class="prezzo-card-label">⚡ Elettricità</div><input class="prezzo-card-input" id="p-elettrica" type="number" min="0.05" max="1" step="0.01" value="0.27" oninput="render()"/><div class="prezzo-card-unit">€ / kWh</div></div>
+  </div>
+  <!-- MIMIT regione -->
+  <div class="mimit-row">
+    <div class="mimit-left">
+      <div class="profilo-label" style="margin-bottom:5px">📍 Prezzi medi regionali MIMIT</div>
+      <div class="mimit-controls">
+        <select class="profilo-input mimit-select" id="regioneSelect">
+          <option value="">— Seleziona regione —</option>
+          <option value="Abruzzo">Abruzzo</option>
+          <option value="Basilicata">Basilicata</option>
+          <option value="Calabria">Calabria</option>
+          <option value="Campania">Campania</option>
+          <option value="Emilia Romagna" selected>Emilia Romagna</option>
+          <option value="Friuli Venezia Giulia">Friuli Venezia Giulia</option>
+          <option value="Lazio">Lazio</option>
+          <option value="Liguria">Liguria</option>
+          <option value="Lombardia">Lombardia</option>
+          <option value="Marche">Marche</option>
+          <option value="Molise">Molise</option>
+          <option value="Piemonte">Piemonte</option>
+          <option value="Puglia">Puglia</option>
+          <option value="Sardegna">Sardegna</option>
+          <option value="Sicilia">Sicilia</option>
+          <option value="Toscana">Toscana</option>
+          <option value="Umbria">Umbria</option>
+          <option value="Valle D'aosta">Valle d'Aosta</option>
+          <option value="Veneto">Veneto</option>
+          <option value="Bolzano">Bolzano (P.A.)</option>
+          <option value="Trento">Trento (P.A.)</option>
+        </select>
+        <button class="mimit-btn" id="mimitBtn" onclick="loadMIMIT()">⬇ Carica prezzi</button>
+      </div>
+    </div>
+    <div class="mimit-status-wrap">
+      <div id="mimitStatus" class="mimit-status"></div>
+      <a href="https://www.mimit.gov.it/it/prezzo-medio-carburanti/regioni" target="_blank" class="mimit-link">→ mimit.gov.it</a>
+    </div>
+  </div>
+  <div class="slider-wrap">
+    <div class="slider-label-row"><div class="profilo-label">🏙 Misto urbano/extraurbano</div><div class="slider-val" id="mistoVal">50%</div></div>
+    <div class="slider-row"><input type="range" id="sliderMisto" min="0" max="100" step="5" value="50" oninput="onSlider('misto',this.value)"/></div>
+    <div class="slider-label-row"><div class="profilo-label">🛣 Autostrada</div><div class="slider-val" id="autoVal">50%</div></div>
+    <div class="slider-row"><input type="range" id="sliderAuto" min="0" max="100" step="5" value="50" oninput="onSlider('auto',this.value)"/></div>
+  </div>
+</div>
+<div class="search-area">
+  <div class="search-wrap">
+    <input class="si" id="si" type="text" autocomplete="off" placeholder="Cerca tra … modelli…" oninput="onInput(this.value)" onkeydown="onKey(event)"/>
+    <div class="sug-box hidden" id="sugBox"></div>
+  </div>
+</div>
+<div id="carsList"></div>
+<div id="compareSection"></div>
+
+<script>
+const C=['#E8321A','#3b82f6','#f59e0b','#10b981','#a78bfa','#f472b6'];
+let cars=[],aIdx=-1,aTab='personal',pM=50,pA=50;
+
+const DB=[
+  // VW
+  {m:"Volkswagen",mod:"Tiguan",v:"2.0 TDI 150cv DSG R-Line",f:"diesel",y:2026,mi:5.6,au:6.2,ec:3.4,url:"https://it.motor1.com/reviews/794125/volkswagen-tiguan-diesel-2026-consumi/"},
+  {m:"Volkswagen",mod:"Golf",v:"2.0 TDI 150cv DSG R-Line",f:"diesel",y:2026,mi:5.4,au:5.6,ec:3.0,url:"https://it.motor1.com/reviews/792887/volkswagen-golf-diesel-2026-consumi/"},
+  // Honda
+  {m:"Honda",mod:"Civic",v:"Full Hybrid e:HEV 2.0 184cv",f:"benzina",y:2026,mi:4.6,au:6.6,ec:3.4,url:"https://it.motor1.com/reviews/793538/honda-civic-full-hybrid-2026-consumi/"},
+  // Honda (aggiuntive)
+  {m:"Honda",mod:"HR-V",v:"Full Hybrid 1.5 e:HEV eCVT 131cv",f:"benzina",y:2025,mi:5.8,au:6.7,ec:3.1,url:"https://it.motor1.com/reviews/769643/honda-hr-v-full-hybrid-2025-consumi/"},
+  {m:"Honda",mod:"CR-V",v:"e:PHEV 2.0 184cv · batt. scarica",f:"benzina",y:2024,mi:6.0,au:7.9,ec:3.6,url:"https://it.motor1.com/reviews/717931/honda-cr-v-plug-in-2024-consumi/"},
+  {m:"Honda",mod:"CR-V",v:"e:HEV Full Hybrid 2.0 184cv AWD",f:"benzina",y:2023,mi:6.5,au:8.0,ec:5.0,url:"https://it.motor1.com/reviews/698034/honda-cr-v-full-hybrid-2023-consumi/"},
+  {m:"Honda",mod:"ZR-V",v:"e:HEV Full Hybrid 2.0 184cv",f:"benzina",y:2023,mi:5.2,au:7.2,ec:3.4,url:"https://it.motor1.com/reviews/692743/honda-zr-v-full-hybrid-consumi/"},
+  {m:"Honda",mod:"Civic",v:"e:HEV Full Hybrid 2.0 184cv",f:"benzina",y:2022,mi:5.8,au:6.3,ec:3.5,url:"https://it.motor1.com/reviews/626044/honda-civic-hybrid-2022-consumi/"},
+  {m:"Honda",mod:"HR-V",v:"Hybrid 1.5 e:HEV eCVT 131cv",f:"benzina",y:2022,mi:5.0,au:7.0,ec:3.7,url:"https://it.motor1.com/reviews/569138/honda-hrv-hybrid-2022-consumi/"},
+  {m:"Honda",mod:"CR-V",v:"Hybrid e:HEV 2.0 184cv AWD",f:"benzina",y:2021,mi:6.1,au:8.4,ec:4.4,url:"https://it.motor1.com/reviews/499154/honda-cr-v-hybrid-2021-prova-consumi/"},
+  {m:"Honda",mod:"Jazz",v:"1.5 Hybrid Crosstar 109cv",f:"benzina",y:2020,mi:4.1,au:6.1,ec:3.2,url:"https://it.motor1.com/reviews/451037/honda-jazz-hybrid-2020-crosstar-prova-consumi/"},
+  {m:"Honda",mod:"CR-V",v:"Hybrid 2.0 184cv AWD",f:"benzina",y:2019,mi:5.8,au:7.9,ec:4.3,url:"https://it.motor1.com/reviews/344765/honda-crv-hybrid-prova-consumi/"},
+  {m:"Honda",mod:"Civic",v:"1.6 i-DTEC 120cv Manuale",f:"diesel",y:2018,mi:4.9,au:5.4,ec:2.8,url:"https://it.motor1.com/reviews/233789/honda-civic-16-i-dtec-la-prova-consumi/"},
+  {m:"Honda",mod:"Civic",v:"1.5 Turbo VTEC 182cv Manuale",f:"benzina",y:2017,mi:5.7,au:6.0,ec:3.7,url:"https://it.motor1.com/reviews/216621/honda-civic-15-la-prova-consumi-reali/"},
+  // Lynk & Co
+  {m:"Lynk & Co",mod:"01",v:"1.5 Plug-in Hybrid 261cv AWD batt. scarica",f:"benzina",y:2022,mi:6.4,au:7.5,ec:3.5,url:"https://it.motor1.com/reviews/577756/lynk-co-01-plugin-consumi/"},
+  // MG
+  {m:"MG",mod:"HS",v:"1.5 PHEV Super Hybrid 326cv batt. scarica",f:"benzina",y:2025,mi:null,au:6.8,ec:2.4,url:"https://it.motor1.com/reviews/763221/mg-hs-ibrida-plug-in-2025-consumi/"},
+  {m:"MG",mod:"ZS",v:"1.5 Full Hybrid+ 197cv eCVT",f:"benzina",y:2025,mi:6.0,au:7.0,ec:null,url:"https://it.motor1.com/reviews/752374/mg-zs-full-hybrid-2025-consumi/"},
+  {m:"MG",mod:"MG3",v:"1.5 Full Hybrid+ 194cv eCVT",f:"benzina",y:2024,mi:5.6,au:6.3,ec:3.1,url:"https://it.motor1.com/reviews/738083/mg3-full-hybrid-2024-consumi/"},
+    // Nissan
+  {m:"Nissan",mod:"X-Trail",v:"1.5 Mild Hybrid 163cv e-4ORCE 4WD",f:"benzina",y:2025,mi:7.2,au:8.0,ec:4.5,url:"https://it.motor1.com/reviews/773981/nissan-x-trail-mild-hybrid-2025-consumi/"},
+  {m:"Nissan",mod:"Juke",v:"1.6 Full Hybrid 143cv eCVT",f:"benzina",y:2025,mi:5.6,au:6.5,ec:3.7,url:"https://it.motor1.com/reviews/758368/nissan-juke-full-hybrid-2025-consumi/"},
+  {m:"Nissan",mod:"X-Trail",v:"1.5 e-Power 204cv e-4ORCE 4WD",f:"benzina",y:2023,mi:null,au:null,ec:null,url:"https://it.motor1.com/reviews/677612/nissan-x-trail-e-power-2023-consumi/"},
+  {m:"Nissan",mod:"Qashqai",v:"1.5 e-Power 190cv 2WD Tekna+",f:"benzina",y:2023,mi:5.6,au:6.8,ec:2.9,url:"https://it.motor1.com/reviews/653327/nissan-qashqai-e-power-consumi/"},
+  {m:"Nissan",mod:"Micra",v:"1.0 IG-T 92cv Benzina Manuale",f:"benzina",y:2022,mi:5.7,au:6.5,ec:3.4,url:"https://it.motor1.com/reviews/607227/nissan-micra-benzina-prova-consumi/"},
+  {m:"Nissan",mod:"Micra",v:"1.0 IG-T 90cv GPL Manuale",f:"gpl",y:2022,mi:6.1,au:7.5,ec:4.1,url:"https://it.motor1.com/reviews/573341/nissan-micra-gpl-prova-consumi/"},
+  {m:"Nissan",mod:"Juke",v:"1.6 Full Hybrid 143cv eCVT N-Connecta",f:"benzina",y:2022,mi:5.5,au:6.6,ec:3.4,url:"https://it.motor1.com/reviews/575316/nissan-juke-mild-hybrid-consumi/"},
+  {m:"Nissan",mod:"Qashqai",v:"1.3 Mild Hybrid 158cv Xtronic 2WD Tekna",f:"benzina",y:2022,mi:5.6,au:8.2,ec:4.9,url:"https://it.motor1.com/reviews/559955/nissan-qashqai-mild-hybrid-consumi/"},
+  {m:"Nissan",mod:"Leaf",v:"40 kWh 150cv",f:"elettrica",ev:true,y:2019,mi:15.0,au:22.0,ec:10.5,url:"https://it.motor1.com/reviews/309985/nissan-leaf-40kwh-prova-consumi/"},
+  {m:"Nissan",mod:"Qashqai",v:"1.3 DIG-T 140cv Manuale 2WD N-Connecta",f:"benzina",y:2018,mi:6.5,au:6.8,ec:4.2,url:"https://it.motor1.com/reviews/273783/nissan-qashqai-13-prova-consumi-roma-forli/"},
+  {m:"Nissan",mod:"Micra",v:"1.5 dCi 90cv Manuale",f:"diesel",y:2017,mi:4.0,au:5.6,ec:null,url:"https://it.motor1.com/reviews/217291/nissan-micra-dci-90-prova-consumi/"},
+  {m:"Nissan",mod:"Juke",v:"1.5 dCi 110cv Manuale 2WD",f:"diesel",y:2015,mi:5.3,au:5.8,ec:3.8,url:"https://it.motor1.com/reviews/209782/nissan-juke-15-dci-prova-consumi/"},
+  {m:"Nissan",mod:"Qashqai",v:"1.5 dCi 110cv Manuale 2WD",f:"diesel",y:2014,mi:4.8,au:5.4,ec:3.2,url:"https://it.motor1.com/reviews/207643/nissan-qashqai-15-dci-prova-consumi/"},
+    // Mitsubishi
+  {m:"Mitsubishi",mod:"Outlander",v:"PHEV 2.4 224cv AWD batt. scarica",f:"benzina",y:2019,mi:7.0,au:9.0,ec:6.0,url:"https://it.motor1.com/reviews/301150/mitsubishi-outlander-phev-prova-consumi/"},
+  {m:"Mitsubishi",mod:"ASX",v:"1.8 DI-D MIVEC 150cv 4WD Automatico",f:"diesel",y:2015,mi:6.2,au:6.7,ec:null,url:"https://it.motor1.com/reviews/213095/mitsubishi-asx-18-diesel-4wd-prova-consumi/"},
+    // MINI
+  {m:"MINI",mod:"Cooper S",v:"2.0 Turbo 204cv DCT7 3 porte",f:"benzina",y:2025,mi:7.1,au:7.5,ec:4.3,url:"https://it.motor1.com/reviews/750277/mini-cooper-s-2025-consumi/"},
+  {m:"MINI",mod:"Countryman",v:"1.5 Mild Hybrid 170cv DCT7 C Favoured",f:"benzina",y:2024,mi:6.8,au:7.4,ec:4.1,url:"https://it.motor1.com/reviews/715394/mini-countryman-benzina-mild-hybrid-2024-consumi/"},
+  {m:"MINI",mod:"Countryman",v:"Cooper S E ALL4 PHEV 224cv batt. scarica",f:"benzina",y:2017,mi:6.8,au:8.0,ec:4.3,url:"https://it.motor1.com/reviews/221589/mini-cooper-s-e-all4-countryman-prova-consumi/"},
+  {m:"MINI",mod:"One D Clubman",v:"1.5 Diesel 116cv Manuale",f:"diesel",y:2017,mi:4.8,au:5.6,ec:3.4,url:"https://it.motor1.com/reviews/217516/mini-one-d-clubman-prova-consumi/"},
+  {m:"MINI",mod:"Cooper D Countryman",v:"2.0 Diesel ALL4 150cv Automatico",f:"diesel",y:2017,mi:7.0,au:6.2,ec:3.9,url:"https://it.motor1.com/reviews/217048/mini-cooper-d-all4-countryman-prova-consumi/"},
+    // Mercedes-Benz
+  {m:"Mercedes",mod:"Classe E",v:"E 300 e PHEV Benzina 313cv batt. scarica",f:"benzina",y:2026,mi:6.4,au:7.5,ec:4.1,url:"https://it.motor1.com/reviews/786783/mercedes-classe-e-ibrida-plug-in-benzina-2026-consumi/"},
+  {m:"Mercedes",mod:"GLC Coupé",v:"300 de PHEV Diesel 333cv 4Matic batt. scarica",f:"diesel",y:2025,mi:5.6,au:6.6,ec:4.0,url:"https://it.motor1.com/reviews/783014/mercedes-glc-coupe-plug-in-hybrid-diesel-2025-consumi/"},
+  {m:"Mercedes",mod:"GLE",v:"450 d 4Matic Mild Hybrid Diesel 367cv",f:"diesel",y:2025,mi:7.2,au:8.2,ec:4.7,url:"https://it.motor1.com/reviews/760090/mercedes-gle-diesel-mild-hybrid-2025-consumi/"},
+  {m:"Mercedes",mod:"GLB",v:"200 d 7 posti 150cv Automatico",f:"diesel",y:2025,mi:6.3,au:6.6,ec:3.3,url:"https://it.motor1.com/reviews/746906/mercedes-glb-diesel-2025-consumi/"},
+  {m:"Mercedes",mod:"Classe E",v:"E 220 d Mild Hybrid 197cv Trazione Post.",f:"diesel",y:2024,mi:6.5,au:5.0,ec:3.3,url:"https://it.motor1.com/reviews/731128/mercedes-classe-e-diesel-mild-hybrid-2024-consumi/"},
+  {m:"Mercedes",mod:"Classe B",v:"B 180 d 116cv Automatico DCT8",f:"diesel",y:2024,mi:5.0,au:5.3,ec:2.8,url:"https://it.motor1.com/reviews/726391/mercedes-classe-b-diesel-2024-consumi/"},
+  {m:"Mercedes",mod:"GLC Coupé",v:"300 de PHEV Diesel 333cv 4Matic batt. scarica",f:"diesel",y:2024,mi:5.7,au:6.6,ec:4.4,url:"https://it.motor1.com/reviews/715895/mercedes-glc-coupe-plug-in-diesel-2024-consumi/"},
+  {m:"Mercedes",mod:"Classe E All Terrain",v:"E 300 de PHEV Diesel 313cv 4Matic batt. scarica",f:"diesel",y:2024,mi:5.6,au:6.7,ec:4.2,url:"https://it.motor1.com/reviews/714302/mercedes-classe-e-all-terrain-plug-in-diesel-2024-consumi/"},
+  {m:"Mercedes",mod:"CLE Coupé",v:"CLE 300 Mild Hybrid 258cv 4Matic",f:"benzina",y:2024,mi:null,au:null,ec:null,url:"https://it.motor1.com/reviews/711122/mercedes-cle-coupe-mild-hybrid-benzina-2024-consumi/"},
+  {m:"Mercedes",mod:"GLA",v:"GLA 250 e PHEV 218cv batt. scarica",f:"benzina",y:2024,mi:null,au:null,ec:null,url:"https://it.motor1.com/reviews/705487/mercedes-gla-plug-in-2024-consumi/"},
+  {m:"Mercedes",mod:"Classe C",v:"C 300 de PHEV Diesel SW 313cv batt. scarica",f:"diesel",y:2023,mi:7.0,au:6.6,ec:4.6,url:"https://it.motor1.com/reviews/701288/mercedes-classe-c-diesel-plug-in-2023-consumi/"},
+  {m:"Mercedes",mod:"Classe A",v:"A 200 Mild Hybrid 163cv Automatico",f:"benzina",y:2023,mi:5.5,au:5.2,ec:3.9,url:"https://it.motor1.com/reviews/668563/mercedes-classe-a-benzina-mild-hybrid-consumi/"},
+  {m:"Mercedes",mod:"Classe A",v:"A 180 d 116cv Automatico DCT8",f:"diesel",y:2023,mi:4.4,au:4.6,ec:2.8,url:"https://it.motor1.com/reviews/667437/mercedes-classe-a-diesel-2023-consumi/"},
+  {m:"Mercedes",mod:"GLC",v:"GLC 220 d 4Matic Mild Hybrid 197cv",f:"diesel",y:2022,mi:5.8,au:6.4,ec:3.9,url:"https://it.motor1.com/reviews/626509/mercedes-glc-220d-2022-consumi/"},
+  {m:"Mercedes",mod:"Classe C",v:"C 300 e PHEV Benzina SW 326cv batt. scarica",f:"benzina",y:2022,mi:5.9,au:6.3,ec:3.7,url:"https://it.motor1.com/reviews/586243/mercedes-classe-c-sw-plugin-consumi/"},
+  {m:"Mercedes",mod:"EQA",v:"EQA 250 66.5kWh 190cv",f:"elettrica",ev:true,y:2022,mi:16.4,au:21.6,ec:12.3,url:"https://it.motor1.com/reviews/583437/mercedes-eqa-250-prova-consumi/"},
+  {m:"Mercedes",mod:"EQS",v:"EQS 450+ 107.8kWh 333cv",f:"elettrica",ev:true,y:2022,mi:18.0,au:24.3,ec:13.0,url:"https://it.motor1.com/reviews/576450/mercedes-eqs-450-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe A",v:"A 180 d 116cv Automatico DCT8",f:"diesel",y:2022,mi:4.5,au:4.7,ec:3.0,url:"https://it.motor1.com/reviews/571792/mercedes-a-180d-2022-cosumi/"},
+  {m:"Mercedes",mod:"Classe C",v:"C 220 d Mild Hybrid 197cv Automatico",f:"diesel",y:2022,mi:6.2,au:6.0,ec:3.9,url:"https://it.motor1.com/reviews/562903/mercedes-classe-c-mildhybrid-consumi/"},
+  {m:"Mercedes",mod:"Classe E Coupé",v:"E 350 Mild Hybrid Benzina 313cv Trazione Post.",f:"benzina",y:2021,mi:8.8,au:8.0,ec:5.2,url:"https://it.motor1.com/reviews/539915/mercedes-classe-e-coupe-consumi/"},
+  {m:"Mercedes",mod:"GLC",v:"GLC 300 de PHEV Diesel 4Matic batt. scarica",f:"diesel",y:2021,mi:6.4,au:7.2,ec:4.2,url:"https://it.motor1.com/reviews/509518/mercedes-glc-plugin-diesel-consumi/"},
+  {m:"Mercedes",mod:"CLA",v:"CLA 250 e PHEV Shooting Brake 218cv batt. scarica",f:"benzina",y:2021,mi:5.4,au:6.3,ec:3.3,url:"https://it.motor1.com/reviews/500473/mercedes-cla-ibrida-plugin-consumi/"},
+  {m:"Mercedes",mod:"GLA",v:"GLA 250 e PHEV 218cv batt. scarica",f:"benzina",y:2021,mi:5.4,au:6.5,ec:3.3,url:"https://it.motor1.com/reviews/462744/mercedes-gla-ibrida-plug-in-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe B",v:"B 250 e PHEV 218cv batt. scarica",f:"benzina",y:2020,mi:null,au:null,ec:null,url:"https://it.motor1.com/reviews/453362/mercedes-classe-b-ibrida-plugin-prova-consumi/"},
+  {m:"Mercedes",mod:"GLE",v:"GLE 350 de PHEV Diesel 4Matic batt. scarica",f:"diesel",y:2020,mi:6.4,au:7.4,ec:4.4,url:"https://it.motor1.com/reviews/440606/mercedes-gle-ibrida-plugin-diesel-prova-consumi/"},
+  {m:"Mercedes",mod:"GLA",v:"GLA 220 d 4Matic 150cv",f:"diesel",y:2020,mi:5.0,au:5.8,ec:3.3,url:"https://it.motor1.com/reviews/434001/mercedes-gla-diesel-4matic-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe A",v:"A 250 e PHEV 218cv batt. scarica",f:"benzina",y:2020,mi:5.4,au:null,ec:3.3,url:"https://it.motor1.com/reviews/432832/mercedes-classe-a-ibrida-plugin-prova-consumi/"},
+  {m:"Mercedes",mod:"EQC",v:"EQC 400 4Matic 80kWh 408cv",f:"elettrica",ev:true,y:2019,mi:21.0,au:27.3,ec:15.0,url:"https://it.motor1.com/reviews/367276/mercedes-eqc-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe E",v:"E 300 de PHEV Diesel 306cv batt. scarica",f:"diesel",y:2019,mi:5.1,au:5.8,ec:3.8,url:"https://it.motor1.com/reviews/347008/mercedes-classe-e-plug-in-diesel-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe A",v:"A 200 1.3 Benzina 163cv Automatico",f:"benzina",y:2019,mi:5.8,au:5.7,ec:3.5,url:"https://it.motor1.com/reviews/305944/mercedes-a-200-prova-consumi-reali/"},
+  {m:"Mercedes",mod:"GLC",v:"GLC 350 e PHEV Benzina 4Matic batt. scarica",f:"benzina",y:2018,mi:7.4,au:7.5,ec:4.5,url:"https://it.motor1.com/reviews/283503/mercedes-glc-350-e-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe E",v:"E 220 d Cabriolet 195cv Automatico",f:"diesel",y:2018,mi:5.6,au:5.1,ec:3.6,url:"https://it.motor1.com/reviews/264011/mercedes-e220-d-cabrio-prova-consumi-roma-forli/"},
+  {m:"Mercedes",mod:"Classe A",v:"A 180 d 1.5 116cv Automatico DCT7",f:"diesel",y:2018,mi:4.2,au:4.2,ec:3.0,url:"https://it.motor1.com/reviews/246881/mercedes-a-180-d-prova-consumi-roma-forli/"},
+  {m:"Mercedes",mod:"Classe E",v:"E 220 d Station Wagon 194cv Automatico",f:"diesel",y:2016,mi:5.0,au:4.7,ec:3.2,url:"https://it.motor1.com/reviews/232061/mercedes-e-220-d-station-wagon-la-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe C",v:"C 350 e PHEV Benzina SW 279cv batt. scarica",f:"benzina",y:2016,mi:6.1,au:6.8,ec:3.9,url:"https://it.motor1.com/reviews/231715/mercedes-c-350-e-station-wagon-la-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe A",v:"A 180 d 1.5 109cv Automatico DCT7",f:"diesel",y:2016,mi:3.9,au:4.3,ec:3.0,url:"https://it.motor1.com/reviews/217108/mercedes-180-d-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe V",v:"V 220 d 8 posti 163cv Automatico",f:"diesel",y:2015,mi:5.7,au:5.2,ec:4.0,url:"https://it.motor1.com/reviews/218205/mercedes-v-220-d-prova-consumi/"},
+  {m:"Mercedes",mod:"Classe C",v:"C 300 h Hybrid SW Diesel 204cv Automatico",f:"diesel",y:2015,mi:5.0,au:5.5,ec:3.2,url:"https://it.motor1.com/reviews/215156/mercedes-c300-h-station-wagon-prova-consumi/"},
+    // Mazda
+  {m:"Mazda",mod:"CX-60",v:"3.3 e-Skyactiv D MHB 249cv AWD Homura",f:"diesel",y:2024,mi:5.3,au:6.1,ec:3.8,url:"https://it.motor1.com/reviews/741670/mazda-cx-60-diesel-mild-hybrid-2024-consumi/"},
+  {m:"Mazda",mod:"MX-30",v:"R-EV Rotary Plug-in Hybrid 170cv batt. scarica",f:"benzina",y:2024,mi:5.8,au:6.9,ec:3.9,url:"https://it.motor1.com/reviews/712532/mazda-mx-30-r-ev-2024-consumi/"},
+  {m:"Mazda",mod:"Mazda3",v:"2.0 e-Skyactiv G 150cv Mild Hybrid Manuale",f:"benzina",y:2023,mi:6.8,au:7.5,ec:4.6,url:"https://it.motor1.com/reviews/698028/mazda3-mild-hybrid-150-cv-2023-consumi/"},
+  {m:"Mazda",mod:"CX-30",v:"2.0 e-Skyactiv G 150cv Mild Hybrid Automatico",f:"benzina",y:2023,mi:5.7,au:7.2,ec:3.9,url:"https://it.motor1.com/reviews/689563/mazda-cx-30-mild-hybrid-2023-consumi/"},
+  {m:"Mazda",mod:"CX-5",v:"2.2L Skyactiv D 184cv 4WD Automatico",f:"diesel",y:2023,mi:5.8,au:6.8,ec:3.9,url:"https://it.motor1.com/reviews/693768/mazda-cx-5-diesel-2023-consumi/"},
+  {m:"Mazda",mod:"CX-60",v:"3.3L e-Skyactiv D 200cv RWD Takumi",f:"diesel",y:2023,mi:5.2,au:5.9,ec:3.6,url:"https://it.motor1.com/reviews/661630/mazda-cx-60-diesel-consumi/"},
+  {m:"Mazda",mod:"Mazda3",v:"2.0 e-Skyactiv X 186cv Mild Hybrid Manuale",f:"benzina",y:2023,mi:null,au:null,ec:null,url:"https://it.motor1.com/reviews/651036/mazda3-mild-hybrid-2023-consumi/"},
+  {m:"Mazda",mod:"Mazda2",v:"1.5 e-Skyactiv G 90cv Mild Hybrid Manuale",f:"benzina",y:2023,mi:4.6,au:5.8,ec:3.6,url:"https://it.motor1.com/reviews/630352/mazda-2-mild-hybrid-consumi/"},
+  {m:"Mazda",mod:"CX-60",v:"2.5 e-Skyactiv PHEV 327cv 4WD batt. scarica",f:"benzina",y:2022,mi:8.0,au:8.4,ec:5.6,url:"https://it.motor1.com/reviews/618968/mazda-cx-60-phev-consumi/"},
+  {m:"Mazda",mod:"CX-30",v:"2.0 e-Skyactiv X 186cv Mild Hybrid 4WD",f:"benzina",y:2020,mi:5.1,au:6.9,ec:3.5,url:"https://it.motor1.com/reviews/398013/mazda-cx-30-skyactiv-x-prova-consumi/"},
+  {m:"Mazda",mod:"Mazda3",v:"2.0 Skyactiv-X 180cv Mild Hybrid Manuale",f:"benzina",y:2020,mi:6.2,au:6.6,ec:4.2,url:"https://it.motor1.com/reviews/392709/mazda-3-skyactiv-x-prova-consumi/"},
+  {m:"Mazda",mod:"Mazda3",v:"2.0 Skyactiv-G 122cv Mild Hybrid Manuale",f:"benzina",y:2019,mi:6.0,au:6.2,ec:3.6,url:"https://it.motor1.com/reviews/355293/mazda-3-hybrid-prova-consumi/"},
+  {m:"Mazda",mod:"Mazda2",v:"1.5L Skyactiv-G 90cv Manuale",f:"benzina",y:2018,mi:5.2,au:6.5,ec:3.4,url:"https://it.motor1.com/reviews/236064/mazda2-la-prova-consumi/"},
+  {m:"Mazda",mod:"CX-5",v:"2.0 Skyactiv-D 150cv AWD Automatico",f:"diesel",y:2017,mi:5.6,au:6.3,ec:3.6,url:"https://it.motor1.com/reviews/229697/mazda-cx-5-20-diesel-prova-consumi/"},
+  {m:"Mazda",mod:"Mazda2",v:"1.5 Skyactiv-D 105cv Manuale",f:"diesel",y:2016,mi:4.5,au:5.4,ec:2.8,url:"https://it.motor1.com/reviews/219540/mazda2-diesel-prova-consumi/"},
+    // Maserati
+  {m:"Maserati",mod:"Ghibli",v:"3.0 V6 Diesel 275cv Automatico",f:"diesel",y:2015,mi:7.5,au:6.5,ec:5.5,url:"https://it.motor1.com/reviews/214052/maserati-ghibli-diesel-prova-consumi/"},
+  {m:"Maserati",mod:"Levante",v:"2.0 Mild Hybrid 330cv Q4 AWD",f:"benzina",y:2021,mi:12.1,au:10.7,ec:6.8,url:"https://it.motor1.com/reviews/546253/maserati-levante-hybrid-prova-consumi/"},
+    // Leapmotor
+  {m:"Leapmotor",mod:"C10",v:"REEV 1.5 Range Extender 215cv batt. scarica",f:"benzina",y:2025,mi:6.3,au:7.8,ec:4.7,url:"https://it.motor1.com/reviews/780544/leapmotor-c10-reev-2025-consumi/"},
+    // Land Rover
+  {m:"Land Rover",mod:"Range Rover Evoque",v:"P300e PHEV 309cv AWD batt. scarica",f:"benzina",y:2024,mi:null,au:null,ec:null,url:"https://it.motor1.com/reviews/708353/range-rover-evoque-plug-in-2024-consumi/"},
+  {m:"Land Rover",mod:"Range Rover Velar",v:"D300 Mild Hybrid Diesel 300cv AWD",f:"diesel",y:2023,mi:7.4,au:7.3,ec:4.4,url:"https://it.motor1.com/reviews/690453/range-rover-velar-diesel-mild-hybrid-2023-consumi/"},
+  {m:"Land Rover",mod:"Range Rover",v:"P510e PHEV 510cv AWD batt. scarica",f:"benzina",y:2023,mi:null,au:null,ec:null,url:"https://it.motor1.com/reviews/669480/range-rover-ibrida-plug-in-2023-consumi/"},
+  {m:"Land Rover",mod:"Range Rover Evoque",v:"P300e PHEV 309cv AWD batt. scarica",f:"benzina",y:2022,mi:8.2,au:9.8,ec:6.2,url:"https://it.motor1.com/reviews/564516/range-rover-evoque-plugin-consumi/"},
+  {m:"Land Rover",mod:"Discovery",v:"D250 MHEV 249cv AWD Automatico",f:"diesel",y:2021,mi:9.7,au:8.9,ec:5.4,url:"https://it.motor1.com/reviews/548241/land-rover-discovery-mild-hybrid-consumi/"},
+  {m:"Land Rover",mod:"Discovery",v:"3.0 SDV6 306cv AWD Automatico",f:"diesel",y:2021,mi:8.2,au:9.5,ec:5.0,url:"https://it.motor1.com/reviews/482340/land-rover-discovery-v6-diesel-prova-consumi/"},
+  {m:"Land Rover",mod:"Range Rover Evoque",v:"D180 Mild Hybrid AWD Automatico",f:"diesel",y:2019,mi:7.5,au:7.5,ec:4.3,url:"https://it.motor1.com/reviews/373699/range-rover-evoque-diesel-prova-consumi/"},
+  {m:"Land Rover",mod:"Range Rover Sport",v:"P400e PHEV 404cv AWD batt. scarica",f:"benzina",y:2018,mi:10.0,au:9.3,ec:6.4,url:"https://it.motor1.com/reviews/265555/range-rover-sport-phev-prova-consumi-roma-forli/"},
+  {m:"Land Rover",mod:"Range Rover",v:"SDV6 Hybrid 354cv AWD Automatico",f:"diesel",y:2017,mi:9.3,au:8.3,ec:5.1,url:"https://it.motor1.com/reviews/232410/range-rover-hybrid-la-prova-consumi/"},
+    // Kia
+  {m:"Kia",mod:"Stonic",v:"1.0 T-GDi Mild Hybrid 115cv DCT",f:"benzina",y:2026,mi:6.8,au:7.0,ec:4.0,url:"https://it.motor1.com/reviews/791742/kia-stonic-mild-hybrid-2026-consumi/"},
+  {m:"Kia",mod:"Sportage",v:"1.6 T-GDi PHEV 288cv AWD batt. scarica",f:"benzina",y:2026,mi:7.8,au:9.1,ec:6.5,url:"https://it.motor1.com/reviews/790601/kia-sportage-ibrida-plug-in-2026-consumi/"},
+  {m:"Kia",mod:"Sportage",v:"1.6 CRDi Mild Hybrid 136cv DCT",f:"diesel",y:2025,mi:6.0,au:6.4,ec:3.6,url:"https://it.motor1.com/reviews/776346/kia-sportage-diesel-mild-hybrid-2025-consumi/"},
+  {m:"Kia",mod:"Niro",v:"1.6 Full Hybrid GPL 126cv DCT6",f:"gpl",y:2024,mi:5.5,au:6.5,ec:null,url:"https://it.motor1.com/reviews/743833/kia-niro-full-hybrid-gpl-2024-consumi/"},
+  {m:"Kia",mod:"Picanto",v:"1.0 MPI 63cv Manuale",f:"benzina",y:2024,mi:5.0,au:5.8,ec:3.4,url:"https://it.motor1.com/reviews/739881/kia-picanto-benzina-2024-consumi/"},
+  {m:"Kia",mod:"XCeed",v:"1.5 T-GDi Mild Hybrid 140cv DCT",f:"benzina",y:2024,mi:6.3,au:7.4,ec:4.0,url:"https://it.motor1.com/reviews/730605/kia-xceed-mild-hybrid-2024-consumi/"},
+  {m:"Kia",mod:"Stonic",v:"1.0 T-GDi Mild Hybrid 120cv DCT",f:"benzina",y:2023,mi:5.8,au:6.4,ec:3.6,url:"https://it.motor1.com/reviews/688513/kia-stonic-mild-hybrid-2023-consumi/"},
+  {m:"Kia",mod:"Sportage",v:"1.6 CRDi AWD DCT MHEV 136cv",f:"diesel",y:2023,mi:5.5,au:6.2,ec:3.4,url:"https://it.motor1.com/reviews/677229/kia-sportage-diesel-mild-hybrid-2023-consumi/"},
+  {m:"Kia",mod:"Niro",v:"1.6 GDi Plug-in Hybrid 183cv batt. scarica",f:"benzina",y:2023,mi:4.8,au:5.8,ec:3.3,url:"https://it.motor1.com/reviews/670769/kia-niro-ibrida-plug-in-2023-consumi/"},
+  {m:"Kia",mod:"Sportage",v:"1.6 T-GDi PHEV 265cv 4WD batt. scarica",f:"benzina",y:2022,mi:6.2,au:8.2,ec:4.2,url:"https://it.motor1.com/reviews/595560/kia-sportage-ibrida-plugin-consumi/"},
+  {m:"Kia",mod:"Sportage",v:"1.6 GDi ECO-G GPL 132cv Manuale",f:"gpl",y:2019,mi:7.7,au:null,ec:5.6,url:"https://it.motor1.com/reviews/388073/kia-sportage-gpl-prova-consumi/"},
+  {m:"Kia",mod:"e-Soul",v:"64kWh 204cv",f:"elettrica",ev:true,y:2019,mi:17.6,au:26.0,ec:12.0,url:"https://it.motor1.com/reviews/386823/kia-e-soul-prova-consumi/"},
+  {m:"Kia",mod:"ProCeed",v:"1.6 CRDi 136cv DCT GT-Line",f:"diesel",y:2019,mi:4.8,au:5.7,ec:3.2,url:"https://it.motor1.com/reviews/346051/kia-proceed-16-diesel-prova-consumi/"},
+  {m:"Kia",mod:"Sportage",v:"1.6 CRDi AWD DCT 136cv",f:"diesel",y:2018,mi:5.8,au:6.8,ec:4.0,url:"https://it.motor1.com/reviews/273061/kia-sportage-diesel-prova-consumi-roma-forli/"},
+  {m:"Kia",mod:"Niro",v:"1.6 Plug-in Hybrid batt. scarica",f:"benzina",y:2018,mi:null,au:5.7,ec:2.5,url:"https://it.motor1.com/reviews/244124/kia-niro-plug-in-prova-consumi-roma-forli/"},
+  {m:"Kia",mod:"Niro",v:"1.6 GDi Full Hybrid 141cv DCT6",f:"benzina",y:2017,mi:4.7,au:6.4,ec:3.7,url:"https://it.motor1.com/reviews/232103/kia-niro-la-prova-consumi/"},
+  {m:"Kia",mod:"Rio",v:"1.1 CRDi 75cv Manuale",f:"diesel",y:2016,mi:4.5,au:5.5,ec:3.3,url:"https://it.motor1.com/reviews/230338/kia-rio-11-crdi-prova-consumi/"},
+  {m:"Kia",mod:"Sportage",v:"Eco-GPL+ 1.6 GDi 132cv",f:"gpl",y:2014,mi:7.9,au:null,ec:5.6,url:"https://it.motor1.com/reviews/207527/kia-sportage-eco-gpl-prova-consumi/"},
+    // Jeep
+  {m:"Jeep",mod:"Avenger",v:"4xe 1.2 Hybrid 48V 145cv 4WD",f:"benzina",y:2025,mi:6.2,au:7.0,ec:4.0,url:"https://it.motor1.com/reviews/772374/jeep-avenger-4xe-mild-hybrid-2025-consumi/"},
+  {m:"Jeep",mod:"Compass",v:"1.5 e-Hybrid 130cv Automatico",f:"benzina",y:2024,mi:6.0,au:6.7,ec:3.7,url:"https://it.motor1.com/reviews/744577/jeep-compass-mild-hybrid-2024-consumi/"},
+  {m:"Jeep",mod:"Avenger",v:"e-Hybrid 1.2 100cv Automatico",f:"benzina",y:2024,mi:6.6,au:7.2,ec:3.2,url:"https://it.motor1.com/reviews/729933/jeep-avenger-mild-hybrid-2024-consumi/"},
+  {m:"Jeep",mod:"Compass",v:"4xe PHEV 240cv Restyling batt. scarica",f:"benzina",y:2021,mi:6.6,au:8.3,ec:4.6,url:"https://it.motor1.com/reviews/532917/jeep-compass-plugin-restyling-consumi/"},
+  {m:"Jeep",mod:"Compass",v:"4xe PHEV 240cv batt. scarica",f:"benzina",y:2021,mi:7.0,au:8.4,ec:5.0,url:"https://it.motor1.com/reviews/491810/jeep-compass-4xe-ibrida-plugin-prova-consumi/"},
+  {m:"Jeep",mod:"Renegade",v:"4xe PHEV 240cv batt. scarica",f:"benzina",y:2020,mi:6.9,au:9.0,ec:5.6,url:"https://it.motor1.com/reviews/447435/jeep-renegade-4xe-ibrida-plugin-prova-consumi/"},
+  {m:"Jeep",mod:"Compass",v:"1.3 T4 150cv 4x2",f:"benzina",y:2020,mi:7.3,au:8.0,ec:4.4,url:"https://it.motor1.com/reviews/442029/jeep-compass-13-benzina-prova-consumi/"},
+  {m:"Jeep",mod:"Compass",v:"1.6 Multijet 120cv Manuale 4x2",f:"diesel",y:2019,mi:5.9,au:6.5,ec:3.5,url:"https://it.motor1.com/reviews/306904/jeep-compass-16-diesel-prova-consumi/"},
+  {m:"Jeep",mod:"Renegade",v:"1.0 T3 120cv Manuale 4x2",f:"benzina",y:2018,mi:7.2,au:7.9,ec:4.5,url:"https://it.motor1.com/reviews/267319/jeep-renegade-10-prova-consumi-roma-forli/"},
+  {m:"Jeep",mod:"Renegade",v:"2.0 Multijet 140cv ATX 4WD",f:"diesel",y:2016,mi:7.5,au:7.8,ec:4.8,url:"https://it.motor1.com/reviews/218670/jeep-renegade-20-multijet-prova-consumi/"},
+    // Lexus
+  {m:"Lexus",mod:"UX 300h",v:"Full Hybrid 2.0 199cv 4WD",f:"benzina",y:2024,mi:5.6,au:6.8,ec:3.8,url:"https://it.motor1.com/reviews/737443/lexus-ux-full-hybrid-2024-consumi/"},
+  {m:"Lexus",mod:"LBX",v:"Full Hybrid 1.5 136cv 2WD",f:"benzina",y:2024,mi:4.8,au:6.0,ec:3.1,url:"https://it.motor1.com/reviews/725098/lexus-lbx-full-hybrid-2024-consumi/"},
+  {m:"Lexus",mod:"RX 500h",v:"Hybrid Turbo F-Sport 371cv 4WD",f:"benzina",y:2023,mi:7.9,au:10.0,ec:5.5,url:"https://it.motor1.com/reviews/691550/lexus-rx-500h-2023-consumi/"},
+  {m:"Lexus",mod:"NX 350h",v:"Full Hybrid 2.5 244cv 4WD Luxury",f:"benzina",y:2023,mi:null,au:null,ec:null,url:"https://it.motor1.com/reviews/655897/lexus-nx-full-hybrid-2023-consumi/"},
+  {m:"Lexus",mod:"NX 450h+",v:"Plug-in Hybrid 309cv 4WD batt. scarica",f:"benzina",y:2022,mi:5.7,au:7.5,ec:4.3,url:"https://it.motor1.com/reviews/618968/lexus-nx-plug-in-consumi/"},
+  {m:"Lexus",mod:"UX 300e",v:"Elettrica 54.3kWh 204cv",f:"elettrica",ev:true,y:2021,mi:20.0,au:29.0,ec:14.2,url:"https://it.motor1.com/reviews/497703/lexus-ux-300e-elettrica-prova-consumi/"},
+  {m:"Lexus",mod:"UX 250h",v:"Full Hybrid 2.0 184cv 2WD",f:"benzina",y:2019,mi:4.9,au:6.3,ec:null,url:"https://it.motor1.com/reviews/351706/lexus-ux-hybrid-prova-consumi/"},
+  {m:"Lexus",mod:"LS 500h",v:"Hybrid 3.5 V6 359cv 4WD",f:"benzina",y:2018,mi:10.0,au:9.0,ec:7.0,url:"https://it.motor1.com/reviews/279242/lexus-ls-hybrid-prova-consumi/"},
+  {m:"Lexus",mod:"LC 500h",v:"Hybrid 3.5 V6 354cv 2WD",f:"benzina",y:2017,mi:9.5,au:8.3,ec:5.0,url:"https://it.motor1.com/reviews/221672/lexus-lc-hybrid-la-prova-consumi/"},
+  {m:"Lexus",mod:"RC 300h",v:"Full Hybrid 2.5 223cv F-Sport 2WD",f:"benzina",y:2016,mi:6.2,au:6.4,ec:3.9,url:"https://it.motor1.com/reviews/231299/lexus-rc-hybrid-la-prova-consumi/"},
+  {m:"Lexus",mod:"NX 300h",v:"Full Hybrid 2.5 197cv F-Sport 4WD",f:"benzina",y:2015,mi:7.3,au:8.5,ec:5.0,url:"https://it.motor1.com/reviews/215148/lexus-nx-hybrid-prova-consumi/"},
+  {m:"Lexus",mod:"IS 300h",v:"Full Hybrid 2.5 223cv Luxury 2WD",f:"benzina",y:2014,mi:6.2,au:null,ec:3.7,url:"https://it.motor1.com/reviews/209004/lexus-is-hybrid-prova-consumi/"},
+    // Lancia
+  {m:"Lancia",mod:"Ypsilon",v:"1.2 Mild Hybrid 110cv e-DCT",f:"benzina",y:2025,mi:5.7,au:5.9,ec:3.1,url:"https://it.motor1.com/reviews/771534/lancia-ypsilon-mild-hybrid-2025-consumi/"},
+  {m:"Lancia",mod:"Ypsilon",v:"1.0 Mild Hybrid 70cv Manuale",f:"benzina",y:2020,mi:4.7,au:5.5,ec:3.5,url:"https://it.motor1.com/reviews/426660/lancia-ypsilon-mild-hybrid-prova-consumi/"},
+  {m:"Lancia",mod:"Ypsilon",v:"1.3 Multijet 95cv S&S Manuale",f:"diesel",y:2016,mi:4.3,au:4.7,ec:2.8,url:"https://it.motor1.com/reviews/216596/lancia-ypsilon-13-multijet-prova-consumi/"},
+    // Jaguar
+  {m:"Jaguar",mod:"F-Pace",v:"P400e PHEV 404cv 4WD batt. scarica",f:"benzina",y:2021,mi:8.0,au:9.5,ec:6.0,url:"https://it.motor1.com/reviews/513909/jaguar-fpace-ibrida-plugin-consumi/"},
+  {m:"Jaguar",mod:"I-Pace",v:"EV400 90kWh 400cv",f:"elettrica",ev:true,y:2018,mi:20.0,au:29.0,ec:17.0,url:"https://it.motor1.com/reviews/273931/jaguar-i-pace-prova-consumi/"},
+  {m:"Jaguar",mod:"F-Type",v:"2.0 Convertibile R-Dynamic 300cv",f:"benzina",y:2018,mi:9.5,au:8.2,ec:5.4,url:"https://it.motor1.com/reviews/240405/jaguar-f-type-convertibile-prova-consumi/"},
+  {m:"Jaguar",mod:"XJ",v:"3.0 V6 AWD 340cv",f:"benzina",y:2017,mi:11.5,au:null,ec:7.2,url:"https://it.motor1.com/reviews/232302/jaguar-xj-30-awd-la-prova-consumi/"},
+  {m:"Jaguar",mod:"XE",v:"2.0d 180cv Automatica",f:"diesel",y:2016,mi:6.2,au:5.8,ec:3.7,url:"https://it.motor1.com/reviews/217548/jaguar-xe-20d-prova-consumi/"},
+    // Hyundai
+  {m:"Hyundai",mod:"Santa Fe",v:"1.6 PHEV 253cv 4WD batt. scarica",f:"benzina",y:2025,mi:7.0,au:8.3,ec:4.2,url:"https://it.motor1.com/reviews/762068/hyundai-santa-fe-ibrida-plug-in-2025-consumi/"},
+  {m:"Hyundai",mod:"Santa Fe",v:"1.6 HEV 215cv 7 posti",f:"benzina",y:2024,mi:6.4,au:7.2,ec:4.4,url:"https://it.motor1.com/reviews/734742/hyundai-santa-fe-full-hybrid-2024-consumi/"},
+  {m:"Hyundai",mod:"i10",v:"1.0 GPL 65cv Manuale",f:"gpl",y:2024,mi:6.4,au:7.4,ec:4.4,url:"https://it.motor1.com/reviews/718312/hyundai-i10-gpl-2024-consumi/"},
+  {m:"Hyundai",mod:"Kona",v:"1.0 T-GDI 48V Mild Hybrid 120cv",f:"benzina",y:2024,mi:6.7,au:7.5,ec:4.2,url:"https://it.motor1.com/reviews/707153/hyundai-kona-mild-hybrid-2024-consumi/"},
+  {m:"Hyundai",mod:"Kona",v:"1.6 GDI Full Hybrid 141cv DCT",f:"benzina",y:2023,mi:5.8,au:6.7,ec:3.4,url:"https://it.motor1.com/reviews/682838/hyundai-kona-full-hybrid-2023-consumi/"},
+  {m:"Hyundai",mod:"Tucson",v:"1.6 PHEV 265cv 4WD batt. scarica",f:"benzina",y:2023,mi:6.5,au:8.1,ec:4.2,url:"https://it.motor1.com/reviews/652342/hyundai-tucson-plug-in-consumi/"},
+  {m:"Hyundai",mod:"Bayon",v:"1.2 GPL 82cv Manuale",f:"gpl",y:2022,mi:7.0,au:9.0,ec:5.5,url:"https://it.motor1.com/reviews/624254/hyundai-bayon-gpl-prova-consumi/"},
+  {m:"Hyundai",mod:"i20 N",v:"1.6 T-GDI 204cv Manuale",f:"benzina",y:2022,mi:6.1,au:6.4,ec:3.9,url:"https://it.motor1.com/reviews/605760/hyundai-i20-n-prova-consumi/"},
+  {m:"Hyundai",mod:"Bayon",v:"1.0 T-GDI 48V Mild Hybrid 100cv",f:"benzina",y:2021,mi:4.9,au:5.8,ec:3.3,url:"https://it.motor1.com/reviews/536160/hyundai-bayon-mild-hybrid-consumi/"},
+  {m:"Hyundai",mod:"i30",v:"1.0 T-GDI 48V Mild Hybrid 120cv N Line",f:"benzina",y:2021,mi:5.3,au:5.9,ec:3.3,url:"https://it.motor1.com/reviews/508041/hyundai-i30-mild-hybrid-consumi/"},
+  {m:"Hyundai",mod:"Santa Fe",v:"1.6 HEV 230cv 4WD",f:"benzina",y:2021,mi:6.9,au:8.5,ec:5.4,url:"https://it.motor1.com/reviews/494670/nuova-hyundai-santa-fe-ibrida-prova-consumi/"},
+  {m:"Hyundai",mod:"Tucson",v:"1.6 HEV 230cv 2WD",f:"benzina",y:2021,mi:5.9,au:7.7,ec:4.4,url:"https://it.motor1.com/reviews/485293/nuova-hyundai-tucson-ibrida-prova-consumi/"},
+  {m:"Hyundai",mod:"i10",v:"1.0 MPI 67cv Manuale",f:"benzina",y:2020,mi:4.5,au:5.7,ec:null,url:"https://it.motor1.com/reviews/424032/hyundai-i10-prova-consumi/"},
+  {m:"Hyundai",mod:"Kona",v:"1.6 GDI Hybrid 141cv DCT",f:"benzina",y:2019,mi:5.2,au:6.0,ec:3.5,url:"https://it.motor1.com/reviews/378965/toyota-kona-hybrid-prova-consumi/"},
+  {m:"Hyundai",mod:"Kona",v:"1.0 T-GDI 120cv Manuale",f:"benzina",y:2017,mi:5.8,au:7.2,ec:4.0,url:"https://it.motor1.com/reviews/223034/hyundai-kona-10-prova-consumi/"},
+  {m:"Hyundai",mod:"Kona Electric",v:"64 kWh 204cv",f:"elettrica",ev:true,y:2018,mi:13.3,au:20.8,ec:9.6,url:"https://it.motor1.com/reviews/269764/hyundai-kona-electric-prova-consumi-roma-forli/"},
+  {m:"Hyundai",mod:"Ioniq",v:"Plug-in Hybrid 1.6 141cv batt. scarica",f:"benzina",y:2018,mi:4.0,au:5.2,ec:null,url:"https://it.motor1.com/reviews/228355/hyundai-ioniq-plug-in-prova-consumi/"},
+  {m:"Hyundai",mod:"Ioniq",v:"Hybrid 1.6 141cv DCT",f:"benzina",y:2016,mi:4.1,au:5.2,ec:2.8,url:"https://it.motor1.com/reviews/231878/hyundai-ioniq-hybrid-la-prova-consumi/"},
+  // Renault
+  {m:"Renault",mod:"Clio",v:"E-Tech Full Hybrid 158cv",f:"benzina",y:2026,mi:4.7,au:5.1,ec:3.4,url:"https://it.motor1.com/reviews/788733/renault-clio-full-hybrid-2026-consumi/"},
+  // Toyota
+  {m:"Toyota",mod:"Aygo X",v:"Full Hybrid 1.5 115cv GR Sport",f:"benzina",y:2026,mi:4.0,au:5.5,ec:2.9,url:"https://it.motor1.com/reviews/789461/toyota-aygo-x-full-hybrid-2026-consumi/"},
+  // Lynk & Co
+    // Mazda
+    // Maserati
+    // Leapmotor
+    // Land Rover
+    // Kia
+  // Skoda
+  {m:"Skoda",mod:"Kodiaq",v:"1.5 TSI Plug-in Hybrid 204cv",f:"benzina",y:2026,mi:5.7,au:7.8,ec:4.3,url:"https://it.motor1.com/reviews/784864/skoda-kodiaq-ibrida-plug-in-2026-consumi/"},
+  // Suzuki
+  {m:"Suzuki",mod:"Swift",v:"1.2 Mild Hybrid 4WD AllGrip",f:"benzina",y:2026,mi:5.0,au:6.2,ec:3.8,url:"https://it.motor1.com/reviews/784049/suzuki-swift-mild-hybrid-4wd-2025-consumi/"},
+  // BYD
+  {m:"BYD",mod:"Seal U",v:"DM-i AWD Design 324cv · batt. scarica",f:"benzina",y:2024,mi:6.5,au:8.2,ec:4.1,url:"https://it.motor1.com/reviews/732984/byd-seal-u-plug-in-2024-consumi/"},
+  // ALFA ROMEO
+  {m:"Alfa Romeo",mod:"Tonale",v:"Plug-in Hybrid Q4 Veloce 270cv · batt. scarica",f:"benzina",y:2025,mi:6.8,au:7.7,ec:4.5,url:"https://it.motor1.com/reviews/782169/alfa-romeo-tonale-ibrida-plug-in-2025-consumi/"},
+  {m:"Alfa Romeo",mod:"Junior",v:"Ibrida Q4 145cv eDCT6 Ti",f:"benzina",y:2025,mi:6.5,au:7.0,ec:3.5,url:"https://it.motor1.com/reviews/775564/alfa-romeo-junior-q4-mild-hybrid-2025-consumi/"},
+  {m:"Alfa Romeo",mod:"Junior",v:"1.2 Hybrid 136cv eDCT6 Speciale",f:"benzina",y:2024,mi:6.6,au:7.1,ec:3.6,url:"https://it.motor1.com/reviews/744531/alfa-romeo-junior-mild-hybrid-2024-consumi/"},
+  {m:"Alfa Romeo",mod:"Stelvio",v:"2.0 Turbo Benzina 280cv Q4 Veloce",f:"benzina",y:2023,mi:8.9,au:8.6,ec:5.3,url:"https://it.motor1.com/reviews/675042/alfa-romeo-stelvio-benzina-2023-consumi/"},
+  {m:"Alfa Romeo",mod:"Tonale",v:"Plug-in Hybrid Q4 Veloce 280cv · batt. scarica",f:"benzina",y:2023,mi:7.4,au:8.4,ec:4.4,url:"https://it.motor1.com/reviews/672818/alfa-romeo-tonale-ibrida-plug-in-consumi/"},
+  {m:"Alfa Romeo",mod:"Tonale",v:"1.5 Hybrid 160cv TCT TI",f:"benzina",y:2022,mi:6.6,au:7.4,ec:4.2,url:"https://it.motor1.com/reviews/590472/alfa-romeo-tonale-hybrid-consumi/"},
+  {m:"Alfa Romeo",mod:"Giulietta",v:"1.6 JTDM 120cv Manuale Super",f:"diesel",y:2019,mi:5.2,au:5.9,ec:3.5,url:"https://it.motor1.com/reviews/375130/alfa-romeo-giulietta-diesel-manuale-prova-consumi/"},
+  {m:"Alfa Romeo",mod:"Giulia",v:"2.0 Turbo Benzina 200cv AT8 Q2",f:"benzina",y:2018,mi:10.0,au:7.2,ec:4.8,url:"https://it.motor1.com/reviews/249589/alfa-romeo-giulia-20-turbo-prova-consumi-roma-forli/"},
+  {m:"Alfa Romeo",mod:"Stelvio",v:"2.2 Diesel 180cv AT8 RWD Executive",f:"diesel",y:2017,mi:7.0,au:6.3,ec:4.0,url:"https://it.motor1.com/reviews/221479/alfa-romeo-stelvio-prova-consumi/"},
+  {m:"Alfa Romeo",mod:"Giulia",v:"2.2 Turbo Diesel 180cv Manuale",f:"diesel",y:2017,mi:5.9,au:5.6,ec:3.3,url:"https://it.motor1.com/reviews/220017/alfa-romeo-giulia-22-diesel-prova-consumi/"},
+  {m:"Alfa Romeo",mod:"Giulietta",v:"1.6 JTDM 120cv TCT Super",f:"diesel",y:2017,mi:5.6,au:6.7,ec:3.6,url:"https://it.motor1.com/reviews/216358/alfa-romeo-giulietta-16-jtdm-prova-consumi/"},
+  {m:"Alfa Romeo",mod:"MiTo",v:"1.4 GPL Turbo 120cv Racer",f:"gpl",y:2015,mi:9.0,au:null,ec:null,url:"https://it.motor1.com/reviews/215804/alfa-romeo-mito-gpl-prova-consumi/"},
+  // AUDI
+  {m:"Audi",mod:"Q3",v:"2.0 TDI 150cv S tronic S line",f:"diesel",y:2025,mi:6.2,au:6.4,ec:3.2,url:"https://it.motor1.com/reviews/778971/audi-q3-diesel-2025-consumi/"},
+  {m:"Audi",mod:"A3 allstreet",v:"1.5 TFSI e 150kW S tronic · batt. scarica",f:"benzina",y:2025,mi:4.9,au:5.7,ec:3.1,url:"https://it.motor1.com/reviews/770718/audi-a3-allstreet-ibrida-plug-in-2025-consumi/"},
+  {m:"Audi",mod:"Q5",v:"2.0 TDI Mild Hybrid 204cv quattro S tronic",f:"diesel",y:2025,mi:6.4,au:7.2,ec:4.2,url:"https://it.motor1.com/reviews/755090/audi-q5-diesel-mild-hybrid-2025-consumi/"},
+  {m:"Audi",mod:"A3 Sportback",v:"45 TFSI e 272cv · batt. scarica",f:"benzina",y:2025,mi:5.9,au:7.0,ec:4.0,url:"https://it.motor1.com/reviews/751600/audi-a3-ibrida-plug-in-2025-consumi/"},
+  {m:"Audi",mod:"A5 Avant",v:"2.0 TDI Mild Hybrid 204cv quattro S tronic",f:"diesel",y:2024,mi:6.8,au:6.5,ec:4.8,url:"https://it.motor1.com/reviews/743017/audi-a5-avant-diesel-mild-hybrid-2024-consumi/"},
+  {m:"Audi",mod:"A6 Avant",v:"55 TFSI e 367cv Plug-in · batt. scarica",f:"benzina",y:2024,mi:8.6,au:9.0,ec:4.8,url:"https://it.motor1.com/reviews/710123/audi-a6-avant-plug-in-consumi/"},
+  {m:"Audi",mod:"A6 Avant",v:"55 TFSI e 367cv Plug-in · batt. scarica",f:"benzina",y:2022,mi:7.4,au:7.9,ec:5.3,url:"https://it.motor1.com/reviews/597449/audi-a6-avant-plugin-consumi/"},
+  {m:"Audi",mod:"A3 Sportback",v:"40 TFSI e 204cv Plug-in · batt. scarica",f:"benzina",y:2022,mi:5.7,au:6.6,ec:4.0,url:"https://it.motor1.com/reviews/584621/audi-a3-sportback-plugin-consumi/"},
+  {m:"Audi",mod:"e-tron S Sportback",v:"503cv 3 motori AWD",f:"elettrica",y:2021,mi:26.0,au:30.0,ec:18.0,ev:true,url:"https://it.motor1.com/reviews/506866/audi-etron-sportback-prova-consumi/"},
+  {m:"Audi",mod:"A3 Sedan",v:"35 TFSI Mild Hybrid 150cv S tronic",f:"benzina",y:2020,mi:6.1,au:6.6,ec:3.9,url:"https://it.motor1.com/reviews/458746/audi-a3-sedan-mild-hybrid-prova-consumi/"},
+  {m:"Audi",mod:"Q5",v:"55 TFSI e 367cv Plug-in · batt. scarica",f:"benzina",y:2020,mi:8.0,au:9.0,ec:5.6,url:"https://it.motor1.com/reviews/393963/audi-q5-ibrida-plug-in-prova-consumi/"},
+  {m:"Audi",mod:"Q3",v:"40 TDI 190cv quattro S tronic",f:"diesel",y:2019,mi:6.3,au:6.8,ec:4.7,url:"https://it.motor1.com/reviews/360079/audi-q3-diesel-prova-consumi/"},
+  {m:"Audi",mod:"A6 Avant",v:"40 TDI 204cv Mild Hybrid quattro ultra S tronic",f:"diesel",y:2019,mi:5.5,au:6.2,ec:3.9,url:"https://it.motor1.com/reviews/314045/audi-a6-avant-20-diesel-prova-consumi/"},
+  {m:"Audi",mod:"e-tron",v:"55 quattro 408cv SUV elettrico",f:"elettrica",y:2019,mi:24.0,au:30.0,ec:16.2,ev:true,url:"https://it.motor1.com/reviews/350627/audi-e-tron-prova-consumi/"},
+  {m:"Audi",mod:"Q5",v:"3.0 TDI 286cv quattro tiptronic",f:"diesel",y:2018,mi:6.7,au:7.2,ec:4.5,url:"https://it.motor1.com/reviews/239418/audi-q5-30-tdi-prova-consumi-roma-forli/"},
+  {m:"Audi",mod:"Q5",v:"2.0 TDI 190cv quattro S tronic",f:"diesel",y:2017,mi:7.2,au:6.6,ec:4.2,url:"https://it.motor1.com/reviews/215105/audi-q5-tdi-prova-consumi/"},
+  {m:"Audi",mod:"Q2",v:"1.4 TFSI cylinder on demand S tronic",f:"benzina",y:2017,mi:6.2,au:6.5,ec:4.0,url:"https://it.motor1.com/reviews/232642/audi-q2-14-tfsi-la-prova-consumi-reali/"},
+  {m:"Audi",mod:"A3 Sportback",v:"e-tron 204cv Plug-in · batt. scarica",f:"benzina",y:2015,mi:5.8,au:6.5,ec:4.2,url:"https://it.motor1.com/reviews/215359/audi-a3-sportback-e-tron-prova-consumi/"},
+  // BMW
+  {m:"BMW",mod:"X1",v:"xDrive25e Plug-in Hybrid 245cv · batt. scarica",f:"benzina",y:2026,mi:6.0,au:7.3,ec:3.9,url:"https://it.motor1.com/reviews/787352/bmw-x1-ibrida-plug-in-2026-consumi/"},
+  {m:"BMW",mod:"X3",v:"xDrive20d Mild Hybrid 197cv M Sport Pro",f:"diesel",y:2025,mi:6.0,au:7.0,ec:3.5,url:"https://it.motor1.com/reviews/750993/bmw-x3-diesel-mild-hybrid-2025-consumi/"},
+  {m:"BMW",mod:"Serie 1",v:"118d M Sport 150cv",f:"diesel",y:2025,mi:4.9,au:5.4,ec:3.1,url:"https://it.motor1.com/reviews/749395/bmw-serie-1-diesel-2025-consumi/"},
+  {m:"BMW",mod:"Serie 5",v:"520d xDrive Mild Hybrid 197cv M Sport",f:"diesel",y:2024,mi:7.1,au:6.0,ec:3.7,url:"https://it.motor1.com/reviews/719064/bmw-serie-5-diesel-mild-hybrid-2024-consumi/"},
+  {m:"BMW",mod:"XM",v:"4.4 V8 Plug-in Hybrid 653cv · batt. scarica",f:"benzina",y:2024,mi:11.5,au:12.3,ec:7.2,url:"https://it.motor1.com/reviews/706386/bmw-xm-2024-prova-consumi/"},
+  {m:"BMW",mod:"iX",v:"xDrive50 523cv SUV elettrico",f:"elettrica",y:2021,mi:24.0,au:27.0,ec:15.7,ev:true,url:"https://it.motor1.com/reviews/554254/bmw-ix-prova-consumi/"},
+  {m:"BMW",mod:"iX3",v:"286cv SUV elettrico trazione posteriore",f:"elettrica",y:2021,mi:14.4,au:21.3,ec:10.8,ev:true,url:"https://it.motor1.com/reviews/528326/bmw-ix3-prova-consumi/"},
+  {m:"BMW",mod:"330e",v:"Plug-in Hybrid 292cv · batt. quasi scarica",f:"benzina",y:2020,mi:7.0,au:8.0,ec:5.1,url:"https://it.motor1.com/reviews/400481/bmw-330e-2020-plug-in-prova-consumi/"},
+  {m:"BMW",mod:"320d Touring",v:"2.0 diesel 190cv M Sport",f:"diesel",y:2019,mi:5.5,au:6.0,ec:3.7,url:"https://it.motor1.com/reviews/380421/bmw-serie-3-touring-diesel-prova-consumi/"},
+  {m:"BMW",mod:"X7",v:"M50d 3.0 diesel 400cv xDrive M Sport",f:"diesel",y:2019,mi:8.8,au:8.2,ec:5.0,url:"https://it.motor1.com/reviews/358833/bmw-x7-m50d-prova-consumi/"},
+  {m:"BMW",mod:"225xe Active Tourer",v:"Plug-in Hybrid 224cv · batt. scarica",f:"benzina",y:2019,mi:7.0,au:8.0,ec:5.1,url:"https://it.motor1.com/reviews/300134/bmw-225xe-active-tourer-prova-consumi/"},
+  {m:"BMW",mod:"X2",v:"xDrive25d 231cv M Sport X",f:"diesel",y:2018,mi:6.1,au:6.0,ec:3.3,url:"https://it.motor1.com/reviews/264764/bmw-x2-xdrive-25d-prova-consumi-roma-forli/"},
+  {m:"BMW",mod:"520d Touring",v:"2.0 diesel 190cv M Sport",f:"diesel",y:2018,mi:6.8,au:6.4,ec:4.1,url:"https://it.motor1.com/reviews/229086/bmw-520d-touring-prova-consumi/"},
+  {m:"BMW",mod:"X3",v:"xDrive20d 190cv M Sport",f:"diesel",y:2017,mi:6.8,au:7.2,ec:4.5,url:"https://it.motor1.com/reviews/224507/bmw-x3-prova-consumi/"},
+  {m:"BMW",mod:"i8",v:"Protonic Red Edition 362cv Plug-in · batt. scarica",f:"benzina",y:2017,mi:6.4,au:6.8,ec:3.0,url:"https://it.motor1.com/reviews/218135/bmw-i8-la-prova-consumi/"},
+  {m:"BMW",mod:"730d",v:"xDrive 265cv Eccelsa cambio auto 8M",f:"diesel",y:2016,mi:7.4,au:6.1,ec:4.1,url:"https://it.motor1.com/reviews/220144/bmw-730d-la-prova-consumi/"},
+  {m:"BMW",mod:"330e",v:"Plug-in Hybrid 252cv · batt. scarica",f:"benzina",y:2016,mi:6.5,au:6.5,ec:4.0,url:"https://it.motor1.com/reviews/220874/bmw-330e-la-prova-consumi/"},
+  {m:"BMW",mod:"i3",v:"REx Range Extender 170cv",f:"elettrica",y:2014,mi:14.4,au:21.0,ec:11.4,ev:true,url:"https://it.motor1.com/reviews/201770/bmw-i3-rex-la-prova-dei-consumi-reali-video/"},
+  // CITROËN
+  {m:"Citroen",mod:"C5 Aircross",v:"1.2 Mild Hybrid 145cv Max",f:"benzina",y:2026,mi:5.7,au:6.5,ec:3.6,url:"https://it.motor1.com/reviews/787722/citroen-c5-aircross-mild-hybrid-2026-consumi/"},
+  {m:"Citroen",mod:"C3",v:"1.2 Turbo Benzina 101cv Manuale Max",f:"benzina",y:2025,mi:6.0,au:6.9,ec:3.8,url:"https://it.motor1.com/reviews/768137/citroen-c3-benzina-2025-consumi/"},
+  {m:"Citroen",mod:"C3 Aircross",v:"Hybrid 145cv eDCT Max",f:"benzina",y:2025,mi:5.8,au:6.8,ec:3.6,url:"https://it.motor1.com/reviews/762838/citroen-c3-aircross-mild-hybrid-2025-consumi/"},
+  {m:"Citroen",mod:"C4 X",v:"PureTech 131cv EAT8 Max",f:"benzina",y:2024,mi:6.2,au:7.1,ec:4.0,url:"https://it.motor1.com/reviews/723121/citroen-c4-x-benzina-2024-consumi/"},
+  {m:"Citroen",mod:"C5 X",v:"Hybrid 225cv E-EAT8 Shine Pack · batt. scarica",f:"benzina",y:2022,mi:6.5,au:7.8,ec:4.5,url:"https://it.motor1.com/reviews/628382/citroen-c5-x-plug-in-consumi/"},
+  {m:"Citroen",mod:"C5 Aircross",v:"Hybrid 225cv E-EAT8 · batt. scarica",f:"benzina",y:2022,mi:6.8,au:8.0,ec:4.8,url:"https://it.motor1.com/reviews/625061/citroen-c5-aircross-plug-in-2022-consumi/"},
+  {m:"Citroen",mod:"C3 Aircross",v:"PureTech 130cv EAT6 Shine Pack",f:"benzina",y:2021,mi:6.5,au:7.8,ec:4.3,url:"https://it.motor1.com/reviews/538520/citroen-c3aircross-benzina-2021-consumi/"},
+  {m:"Citroen",mod:"C4",v:"BlueHDi 130cv EAT8 Shine",f:"diesel",y:2021,mi:5.3,au:5.7,ec:3.0,url:"https://it.motor1.com/reviews/519865/citroen-c4-diesel-2021-consumi/"},
+  {m:"Citroen",mod:"C5 Aircross",v:"Hybrid 225cv E-EAT8 · batt. scarica",f:"benzina",y:2020,mi:6.5,au:7.5,ec:4.5,url:"https://it.motor1.com/reviews/454608/citroen-c5-aircross-ibrida-plugin-prova-consumi/"},
+  {m:"Citroen",mod:"C5 Aircross",v:"BlueHDi 130cv EAT8 Shine",f:"diesel",y:2019,mi:5.8,au:6.5,ec:3.6,url:"https://it.motor1.com/reviews/352734/citroen-c5-aircross-15-diesel-prova-consumi/"},
+  {m:"Citroen",mod:"C4 Cactus",v:"BlueHDi 100cv Manuale Shine",f:"diesel",y:2018,mi:4.5,au:5.2,ec:2.5,url:"https://it.motor1.com/reviews/258502/citroen-c4-cactus-bluehdi-2018-prova-consumi-roma-forli/"},
+  {m:"Citroen",mod:"C3 Aircross",v:"BlueHDi 120cv Manuale Shine",f:"diesel",y:2018,mi:5.5,au:6.3,ec:3.5,url:"https://it.motor1.com/reviews/238096/citroen-c3-aircross-bluehdi-prova-consumi-roma-forli/"},
+  {m:"Citroen",mod:"C3",v:"BlueHDi 100cv Manuale Feel",f:"diesel",y:2017,mi:4.2,au:5.0,ec:2.4,url:"https://it.motor1.com/reviews/217650/citroen-c3-bluehdi-100-prova-consumi/"},
+  {m:"Citroen",mod:"C4 Cactus",v:"BlueHDi 100cv ETG6 Feel",f:"diesel",y:2016,mi:4.0,au:4.9,ec:2.6,url:"https://it.motor1.com/reviews/232053/citroen-c4-cactus-16-bluehdi-la-prova-consumi/"},
+  {m:"Citroen",mod:"C4 Picasso",v:"BlueHDi 120cv EAT6 Exclusive",f:"diesel",y:2015,mi:5.0,au:5.8,ec:3.2,url:"https://it.motor1.com/reviews/215478/citroen-c4-picasso-bluehdi-prova-consumi/"},
+  // CUPRA
+  {m:"Cupra",mod:"Formentor",v:"1.5 Hybrid DSG 150cv",f:"benzina",y:2025,mi:7.0,au:8.1,ec:4.1,url:"https://it.motor1.com/reviews/748599/cupra-formentor-mild-hybrid-2025-consumi/"},
+  {m:"Cupra",mod:"Terramar",v:"VZ 1.5 e-HYBRID DSG 272cv · batt. scarica",f:"benzina",y:2025,mi:7.5,au:9.5,ec:4.8,url:"https://it.motor1.com/reviews/747849/cupra-terramar-plug-in-2025-consumi/"},
+  {m:"Cupra",mod:"Born",v:"204cv 58kWh trazione posteriore",f:"elettrica",y:2022,mi:12.0,au:17.5,ec:10.0,ev:true,url:"https://it.motor1.com/reviews/591907/cupra-born-prova-consumi-reali/"},
+  {m:"Cupra",mod:"Formentor",v:"VZ 1.4 e-Hybrid 245cv DSG · batt. scarica",f:"benzina",y:2022,mi:6.4,au:8.0,ec:4.4,url:"https://it.motor1.com/reviews/565873/cupra-formentor-ibrida-plugin-consumi/"},
+  {m:"Cupra",mod:"Formentor",v:"VZ 2.0 TSI 310cv 4Drive DSG",f:"benzina",y:2021,mi:10.2,au:8.4,ec:5.9,url:"https://it.motor1.com/reviews/493663/cupra-formentor-20-tsi-prova-consumi/"},
+  // DACIA
+  {m:"Dacia",mod:"Jogger",v:"1.8 Full Hybrid 158cv 7 posti Journey",f:"benzina",y:2026,mi:4.5,au:5.7,ec:3.6,url:"https://it.motor1.com/reviews/794740/dacia-jogger-full-hybrid-2026-consumi/"},
+  {m:"Dacia",mod:"Bigster",v:"Mild Hybrid-G 140cv GPL Extreme",f:"gpl",y:2026,mi:9.2,au:8.7,ec:5.0,url:"https://it.motor1.com/reviews/785432/dacia-bigster-mild-hybrid-gpl-2026-consumi/"},
+  {m:"Dacia",mod:"Bigster",v:"1.8 Full Hybrid 157cv Journey",f:"benzina",y:2025,mi:5.2,au:6.3,ec:3.3,url:"https://it.motor1.com/reviews/781770/dacia-bisgster-full-hybrid-2025-consumi/"},
+  {m:"Dacia",mod:"Bigster",v:"1.2 Mild Hybrid 130cv 4x4 Extreme",f:"benzina",y:2025,mi:5.9,au:6.9,ec:3.8,url:"https://it.motor1.com/reviews/765073/dacia-bigster-mild-hybrid-2025-consumi/"},
+  {m:"Dacia",mod:"Duster",v:"1.2 Mild Hybrid 130cv Extreme",f:"benzina",y:2025,mi:5.5,au:7.2,ec:3.9,url:"https://it.motor1.com/reviews/757286/dacia-duster-mild-hybrid-2025-consumi/"},
+  {m:"Dacia",mod:"Duster",v:"1.6 Full Hybrid 140cv Journey",f:"benzina",y:2025,mi:5.5,au:6.3,ec:3.2,url:"https://it.motor1.com/reviews/753083/dacia-duster-full-hybrid-2025-consumi/"},
+  {m:"Dacia",mod:"Duster",v:"ECO-G 100 GPL Extreme",f:"gpl",y:2024,mi:7.5,au:9.0,ec:4.8,url:"https://it.motor1.com/reviews/727387/dacia-duster-gpl-2024-consumi/"},
+  {m:"Dacia",mod:"Jogger",v:"1.6 Full Hybrid 140cv Extreme 7P",f:"benzina",y:2023,mi:5.0,au:6.2,ec:3.0,url:"https://it.motor1.com/reviews/687320/dacia-jogger-full-hybrid-2023-consumi/"},
+  {m:"Dacia",mod:"Sandero",v:"TCe 100 GPL ECO-G Streetway Expression",f:"gpl",y:2023,mi:6.8,au:8.2,ec:4.5,url:"https://it.motor1.com/reviews/662672/dacia-sandero-gpl-2023-consumi/"},
+  {m:"Dacia",mod:"Duster",v:"1.5 dCi 115cv 4x4 Extreme",f:"diesel",y:2023,mi:5.0,au:5.8,ec:3.2,url:"https://it.motor1.com/reviews/659121/dacia-duster-diesel-2023-consumi/"},
+  {m:"Dacia",mod:"Jogger",v:"1.0 TCe 110cv Manuale Extreme",f:"benzina",y:2023,mi:6.5,au:8.0,ec:4.2,url:"https://it.motor1.com/reviews/631248/dacia-jogger-benzina-prova-consumi/"},
+  {m:"Dacia",mod:"Jogger",v:"TCe 100 GPL ECO-G Extreme",f:"gpl",y:2022,mi:8.0,au:9.2,ec:5.4,url:"https://it.motor1.com/reviews/580693/dacia-jogger-gpl-prova-consumi/"},
+  {m:"Dacia",mod:"Duster",v:"1.3 TCe 150cv EDC 4x2 Prestige",f:"benzina",y:2022,mi:7.0,au:7.0,ec:4.1,url:"https://it.motor1.com/reviews/561445/dacia-duster-benzina-150cv-consumi/"},
+  {m:"Dacia",mod:"Sandero",v:"1.0 TCe 90cv Manuale Comfort",f:"benzina",y:2021,mi:5.3,au:6.5,ec:3.6,url:"https://it.motor1.com/reviews/516753/dacia-sandero-2021-benzina-consumi/"},
+  {m:"Dacia",mod:"Duster",v:"1.0 TCe 100 GPL ECO-G 4x2 Comfort",f:"gpl",y:2020,mi:6.2,au:8.8,ec:null,url:"https://it.motor1.com/reviews/435935/dacia-duster-10-gpl-prova-consumi/"},
+  {m:"Dacia",mod:"Sandero",v:"TCe 100 GPL 15th Anniversary",f:"gpl",y:2020,mi:7.0,au:8.8,ec:null,url:"https://it.motor1.com/reviews/444057/dacia-sandero-10-gpl-prova-consumi/"},
+  {m:"Dacia",mod:"Duster",v:"1.6 SCe 115cv GPL 4x2 Prestige",f:"gpl",y:2019,mi:9.0,au:11.0,ec:null,url:"https://it.motor1.com/reviews/348212/dacia-duster-gpl-prova-consumi/"},
+  {m:"Dacia",mod:"Duster",v:"1.5 dCi 110cv 4x4 Prestige",f:"diesel",y:2018,mi:5.2,au:6.5,ec:3.8,url:"https://it.motor1.com/reviews/233017/dacia-duster-15-dci-prova-consumi/"},
+  {m:"Dacia",mod:"Sandero",v:"Stepway 0.9 Turbo GPL 90cv Brave",f:"gpl",y:2017,mi:7.0,au:8.8,ec:null,url:"https://it.motor1.com/reviews/221152/dacia-sandero-gpl-prova-consumi/"},
+  // DS — 6 articoli letti dagli originali Motor1.it
+  {m:"DS",mod:"7",v:"E-Tense 360 4x4 La Première · batt. scarica",f:"benzina",y:2023,mi:7.7,au:8.3,ec:5.2,url:"https://it.motor1.com/reviews/660375/ds-7-ibrida-plug-in-2023-consumi/"},
+  {m:"DS",mod:"4",v:"E-Tense 225cv Cross Rivoli · batt. scarica",f:"benzina",y:2022,mi:5.5,au:6.8,ec:3.4,url:"https://it.motor1.com/reviews/617038/ds-4-plug-in-consumi/"},
+  {m:"DS",mod:"3 Crossback",v:"BlueHDi 100cv Manuale Performance Line",f:"diesel",y:2019,mi:4.4,au:5.1,ec:2.4,url:"https://it.motor1.com/reviews/362665/ds-3-crossback-diesel-prova-consumi/"},
+  {m:"DS",mod:"7 Crossback",v:"BlueHDi 180cv EAT8 Grand Chic",f:"diesel",y:2018,mi:6.3,au:7.0,ec:4.3,url:"https://it.motor1.com/reviews/236007/ds-7-crossback-prova-consumi-roma-forli/"},
+  {m:"DS",mod:"5",v:"Hybrid 4x4 2.0 HDi 200cv Sport Chic",f:"diesel",y:2015,mi:4.9,au:6.0,ec:3.2,url:"https://it.motor1.com/reviews/214859/ds-5-hybrid-4x4-prova-consumi/"},
+  {m:"DS",mod:"3",v:"PureTech 82cv Manuale So Chic",f:"benzina",y:2015,mi:5.5,au:6.2,ec:3.8,url:"https://it.motor1.com/reviews/211229/ds-3-puretech-82-prova-consumi/"},
+
+  // ——— FIAT — 21 articoli letti da Motor1.it ———
+  {m:"Fiat",mod:"Grande Panda",v:"1.2 Mild Hybrid 110cv DCT La Prima",f:"benzina",y:2025,mi:5.7,au:7.0,ec:3.7,url:"https://it.motor1.com/reviews/766643/fiat-grande-panda-mild-hybrid-2025-consumi/"},
+  {m:"Fiat",mod:"Pandina",v:"1.0 Mild Hybrid 70cv Pandina",f:"benzina",y:2025,mi:4.8,au:5.7,ec:3.4,url:"https://it.motor1.com/reviews/753744/fiat-pandina-mild-hybrid-2025-consumi/"},
+  {m:"Fiat",mod:"600",v:"1.2 Mild Hybrid 100cv DCT Red",f:"benzina",y:2024,mi:5.8,au:6.8,ec:3.5,url:"https://it.motor1.com/reviews/736512/fiat-600-mild-hybrid-2024-consumi/"},
+  {m:"Fiat",mod:"Tipo Station Wagon",v:"1.5 Mild Hybrid 130cv DCT Cross RED",f:"benzina",y:2022,mi:5.4,au:6.1,ec:3.2,url:"https://it.motor1.com/reviews/599150/fiat-tipo-sw-hybrid-consumi/"},
+  {m:"Fiat",mod:"500X",v:"1.5 Mild Hybrid 130cv DCT Cross",f:"benzina",y:2022,mi:5.7,au:6.4,ec:3.6,url:"https://it.motor1.com/reviews/594473/fiat-500x-hybrid-prova-consumi/"},
+  {m:"Fiat",mod:"500",v:"Elettrica 42kWh Icon 118cv",f:"elettrica",y:2022,mi:17.4,au:21.0,ec:13.0,ev:true,url:"https://it.motor1.com/reviews/567366/fiat-500-elettrica-prova-consumi/"},
+  {m:"Fiat",mod:"Panda Sport",v:"1.0 Mild Hybrid 70cv Sport",f:"benzina",y:2021,mi:4.9,au:5.8,ec:3.4,url:"https://it.motor1.com/reviews/512617/fiat-panda-sport-hybrid-consumi/"},
+  {m:"Fiat",mod:"Panda",v:"1.0 Mild Hybrid 70cv City Cross Launch Edition",f:"benzina",y:2021,mi:4.1,au:4.9,ec:2.9,url:"https://it.motor1.com/reviews/478291/fiat-panda-mild-hybrid-2021-consumi/"},
+  {m:"Fiat",mod:"Tipo Cross",v:"1.0 Turbo Benzina 100cv Manuale Cross",f:"benzina",y:2021,mi:5.9,au:7.2,ec:3.8,url:"https://it.motor1.com/reviews/509469/fiat-tipo-cross-benzina-consumi/"},
+  {m:"Fiat",mod:"Panda",v:"1.0 Mild Hybrid 70cv City Cross",f:"benzina",y:2020,mi:5.0,au:5.3,ec:3.3,url:"https://it.motor1.com/reviews/445109/fiat-panda-mild-hybrid-prova-consumi/"},
+  {m:"Fiat",mod:"Tipo",v:"1.4 Benzina 95cv Manuale 5 porte",f:"benzina",y:2019,mi:7.0,au:6.9,ec:4.3,url:"https://it.motor1.com/reviews/384463/fiat-tipo14-benzina-prova-consumi/"},
+  {m:"Fiat",mod:"500X",v:"1.3 Firefly T4 150cv DCT Cross",f:"benzina",y:2019,mi:7.5,au:8.0,ec:5.2,url:"https://it.motor1.com/reviews/302016/fiat-500x-13-t4-benzina-prova-consumi/"},
+  {m:"Fiat",mod:"500X",v:"1.4 T-Jet 120cv GPL Mirror",f:"gpl",y:2018,mi:8.8,au:9.8,ec:6.3,url:"https://it.motor1.com/reviews/238669/fiat-500x-gpl-prova-consumi-roma-forli/"},
+  {m:"Fiat",mod:"Panda",v:"1.2 69cv City Cross",f:"benzina",y:2017,mi:5.5,au:6.3,ec:3.6,url:"https://it.motor1.com/reviews/221259/fiat-panda-12-city-cross-prova-consumi/"},
+  {m:"Fiat",mod:"Tipo",v:"1.4 T-Jet 120cv GPL Manuale",f:"gpl",y:2017,mi:8.7,au:10.0,ec:null,url:"https://it.motor1.com/reviews/221057/fiat-tipo-14-gpl-prova-consumi/"},
+  {m:"Fiat",mod:"Tipo",v:"1.6 MultiJet 120cv Manuale Easy",f:"diesel",y:2016,mi:4.8,au:5.2,ec:3.0,url:"https://it.motor1.com/reviews/216126/fiat-tipo-diesel-prova-consumi/"},
+  {m:"Fiat",mod:"500X",v:"1.6 MultiJet 120cv Manuale City Look Lounge",f:"diesel",y:2016,mi:5.4,au:6.8,ec:4.2,url:"https://it.motor1.com/reviews/216857/fiat-500x-16-multijet-prova-consumi/"},
+  {m:"Fiat",mod:"500",v:"1.2 69cv GPL EasyPower",f:"gpl",y:2016,mi:6.6,au:null,ec:null,url:"https://it.motor1.com/reviews/231238/fiat-500-12-gpl-prova-consumi/"},
+  {m:"Fiat",mod:"500C",v:"0.9 TwinAir 85cv Lounge Dualogic",f:"benzina",y:2015,mi:6.3,au:6.1,ec:3.9,url:"https://it.motor1.com/reviews/213755/fiat-500c-09-twinair-prova-consumi/"},
+  {m:"Fiat",mod:"500L",v:"0.9 TwinAir 80cv Natural Power metano Pop Star",f:"metano",y:2014,mi:5.3,au:null,ec:3.2,url:"https://it.motor1.com/reviews/209733/fiat-500l-natural-power-prova-consumi/"},
+  {m:"Fiat",mod:"Panda",v:"0.9 TwinAir 80cv Natural Power metano",f:"metano",y:2014,mi:4.5,au:null,ec:null,url:"https://it.motor1.com/reviews/231634/fiat-panda-09-twinair-turbo-natural-power-prova-consumi-a-metano/"},
+  // ——— FORD — 18 articoli letti da Motor1.it ———
+  {m:"Ford",mod:"Tourneo Courier",v:"1.0 EcoBoost 125cv Powershift Active",f:"benzina",y:2026,mi:7.8,au:8.5,ec:5.0,url:"https://it.motor1.com/reviews/791349/ford-tourneo-courier-benzina-2026-consumi/"},
+  {m:"Ford",mod:"Kuga",v:"2.5 Plug-In Hybrid 243cv ST-Line X · batt. scarica",f:"benzina",y:2025,mi:5.8,au:6.7,ec:3.5,url:"https://it.motor1.com/reviews/769267/ford-kuga-ibrida-plug-in-2025-consumi/"},
+  {m:"Ford",mod:"Puma",v:"1.0 EcoBoost Hybrid 125cv Titanium manuale",f:"benzina",y:2024,mi:5.3,au:6.1,ec:3.1,url:"https://it.motor1.com/reviews/727942/ford-puma-mild-hybrid-2024-consumi/"},
+  {m:"Ford",mod:"Kuga",v:"2.5 Full Hybrid 190cv AWD Titanium",f:"benzina",y:2022,mi:6.2,au:7.1,ec:4.3,url:"https://it.motor1.com/reviews/558433/ford-kuga-full-hybrid-consumi/"},
+  {m:"Ford",mod:"Mustang Mach-E",v:"Extended Range 294cv trazione posteriore",f:"elettrica",y:2021,mi:17.0,au:24.0,ec:15.0,ev:true,url:"https://it.motor1.com/reviews/541647/ford-mustang-mach-e-consumi/"},
+  {m:"Ford",mod:"Puma",v:"1.0 EcoBoost Hybrid 125cv DCT7 automatica",f:"benzina",y:2021,mi:5.8,au:7.2,ec:3.6,url:"https://it.motor1.com/reviews/522549/ford-puma-hybrid-automatica-consumi/"},
+  {m:"Ford",mod:"Kuga",v:"2.0 EcoBlue Mild Hybrid 150cv 2WD Manuale",f:"diesel",y:2021,mi:5.5,au:6.2,ec:3.5,url:"https://it.motor1.com/reviews/467058/ford-kuga-diesel-mild-hybrid-prova-consumi/"},
+  {m:"Ford",mod:"Focus",v:"1.0 EcoBoost Hybrid 155cv ST-Line manuale",f:"benzina",y:2020,mi:5.7,au:6.4,ec:3.9,url:"https://it.motor1.com/reviews/460370/ford-focus-mild-hybrid-prova-consumi/"},
+  {m:"Ford",mod:"Fiesta",v:"1.0 EcoBoost Hybrid 125cv ST-Line",f:"benzina",y:2020,mi:5.2,au:5.8,ec:3.5,url:"https://it.motor1.com/reviews/456257/ford-fiesta-mild-hybrid-prova-consumi/"},
+  {m:"Ford",mod:"Kuga",v:"2.5 Plug-In Hybrid 225cv 2WD · batt. scarica",f:"benzina",y:2020,mi:4.2,au:6.0,ec:3.6,url:"https://it.motor1.com/reviews/430430/ford-kuga-ibrida-plug-in-prova-consumi/"},
+  {m:"Ford",mod:"Puma",v:"1.0 EcoBoost Hybrid 155cv manuale",f:"benzina",y:2020,mi:5.7,au:7.0,ec:4.1,url:"https://it.motor1.com/reviews/403294/ford-puma-benzina-mild-hybrid-prova-consumi/"},
+  {m:"Ford",mod:"Focus Active",v:"1.0 EcoBoost 125cv cambio automatico 8M",f:"benzina",y:2019,mi:6.5,au:7.5,ec:4.5,url:"https://it.motor1.com/reviews/383158/ford-focus-active-10-benzina-prova-consumi/"},
+  {m:"Ford",mod:"EcoSport",v:"1.5 TDCi 125cv 4x4 ST-Line",f:"diesel",y:2019,mi:5.5,au:6.9,ec:4.0,url:"https://it.motor1.com/reviews/315408/ford-ecosport-15-diesel-prova-consumi/"},
+  {m:"Ford",mod:"Focus Wagon",v:"2.0 EcoBlue 150cv cambio automatico 8M ST-Line",f:"diesel",y:2019,mi:5.8,au:6.5,ec:4.0,url:"https://it.motor1.com/reviews/299370/ford-focus-20-diesel-wagon-prova-consumi/"},
+  {m:"Ford",mod:"Ka+ Active",v:"1.2 Ti-VCT 85cv Manuale",f:"benzina",y:2018,mi:6.0,au:7.0,ec:4.2,url:"https://it.motor1.com/reviews/274648/ford-ka-plus-active-prova-consumi/"},
+  {m:"Ford",mod:"Focus",v:"1.0 EcoBoost 125cv Titanium 5 porte",f:"benzina",y:2015,mi:6.5,au:7.2,ec:4.0,url:"https://it.motor1.com/reviews/218848/ford-focus-10-ecoboost-prova-consumi/"},
+  {m:"Ford",mod:"Fiesta",v:"1.0 EcoBoost 100cv Manuale Plus 5 porte",f:"benzina",y:2017,mi:5.2,au:5.6,ec:3.2,url:"https://it.motor1.com/reviews/221374/ford-fiesta-10-prova-consumi/"},
+  {m:"Ford",mod:"Fiesta",v:"1.4 GPL 95cv Titanium 5 porte",f:"gpl",y:2014,mi:7.5,au:9.0,ec:null,url:"https://it.motor1.com/reviews/214402/ford-fiesta-14-gpl-la-prova-dei-consumi-reali/"},
+];
+
+const FPK=f=>f==='diesel'?'p-diesel':(f==='elettrica'?'p-elettrica':(f==='gpl'?'p-gpl':(f==='metano'?'p-metano':'p-benzina')));
+const FPL=f=>{const p=parseFloat(document.getElementById(FPK(f)).value)||0;return f==='diesel'?`🛢 ${p.toFixed(3)} €/l`:f==='elettrica'?`⚡ ${p.toFixed(2)} €/kWh`:f==='gpl'?`💧 ${p.toFixed(3)} €/l`:f==='metano'?`🌿 ${p.toFixed(3)} €/kg`:`⛽ ${p.toFixed(3)} €/l`};
+function gP(f){return parseFloat(document.getElementById(FPK(f)).value)||0}
+
+function hl(){
+  document.getElementById('card-benzina').classList.toggle('used',cars.some(c=>c.f==='benzina'));
+  document.getElementById('card-diesel').classList.toggle('used',cars.some(c=>c.f==='diesel'));
+  document.getElementById('card-gpl').classList.toggle('used',cars.some(c=>c.f==='gpl'));
+  document.getElementById('card-metano').classList.toggle('used',cars.some(c=>c.f==='metano'));
+  document.getElementById('card-elettrica').classList.toggle('used',cars.some(c=>c.f==='elettrica'));
+}
+
+function fbadge(c){
+  const v=c.v.toLowerCase();
+  if(c.f==='elettrica') return {cls:'fe',lbl:'Elettrica'};
+  if(c.f==='diesel') return {cls:'fd2',lbl:'Diesel'};
+  if(c.f==='gpl') return {cls:'fg',lbl:'GPL'};
+  if(v.includes('plug-in')||v.includes('e-hybrid')||v.includes('tfsi e')||v.includes('dm-i')||v.includes('xdrive25e')||v.includes('hybrid 225')||v.includes('e-tense')||v.includes('etense')) return {cls:'fp',lbl:'Plug-in Hybrid'};
+  if(v.includes('full hybrid')||v.includes('e:hev')||v.includes('e-tech')||v.includes('hybrid')) return {cls:'fh',lbl:'Ibrido'};
+  return {cls:'fb2',lbl:'Benzina'};
+}
+const FI={diesel:"🛢",benzina:"⛽",gpl:"💧",elettrica:"⚡"};
+
+function onSlider(w,val){
+  val=parseInt(val);const o=100-val;
+  if(w==='misto'){pM=val;pA=o;document.getElementById('sliderAuto').value=o;document.getElementById('autoVal').textContent=o+'%';document.getElementById('mistoVal').textContent=val+'%';}
+  else{pA=val;pM=o;document.getElementById('sliderMisto').value=o;document.getElementById('mistoVal').textContent=o+'%';document.getElementById('autoVal').textContent=val+'%';}
+  render();
+}
+
+function cP(c){const m=c.mi||0,a=c.au||0,t=pM+pA;return t===0?m:m*(pM/t)+a*(pA/t);}
+
+function nrm(s){return s.toLowerCase().replace(/[àá]/g,'a').replace(/[èé]/g,'e').replace(/[ìí]/g,'i').replace(/[òó]/g,'o').replace(/[ùú]/g,'u')}
+
+function onInput(val){
+  const q=nrm(val.trim());if(q.length<2){hSug();return}
+  const res=DB.filter(c=>q.split(' ').every(t=>nrm(`${c.m} ${c.mod} ${c.v} ${c.f}`).includes(t))).slice(0,10);
+  sSug(res,val.trim());
+}
+
+function SV(f){
+  const s={
+    diesel:'background:rgba(59,130,246,.18);color:#7bb3f0;border:1px solid rgba(59,130,246,.25)',
+    benzina:'background:rgba(245,158,11,.15);color:#f5c060;border:1px solid rgba(245,158,11,.22)',
+    gpl:'background:rgba(16,185,129,.14);color:#5be898;border:1px solid rgba(16,185,129,.2)',
+    metano:'background:rgba(168,85,247,.14);color:#c084fc;border:1px solid rgba(168,85,247,.2)',
+    elettrica:'background:rgba(6,182,212,.14);color:#67e8f9;border:1px solid rgba(6,182,212,.2)'
+  };
+  return s[f]||s.benzina;
+}
+function FL(f){
+  return{diesel:'Diesel',benzina:'Benzina',gpl:'GPL',metano:'Metano',elettrica:'Elettrica'}[f]||f;
+}
+function sSug(res,raw){
+  const box=document.getElementById('sugBox');aIdx=-1;
+  if(!res.length){box.innerHTML=`<div class="sug-empty">Nessun risultato — ${DB.length} auto disponibili</div>`;box.classList.remove('hidden');return;}
+  box.innerHTML=res.map((c,i)=>{
+    const u=c.ev?'kWh/100':c.f==='gpl'?'l GPL/100':'l/100';
+    return`<div class="sug-item" data-i="${i}" onmousedown="pick(${i})">
+      <div class="sug-icon">${FI[c.f]||'⛽'}</div>
+      <div class="sug-main"><div class="sug-name">${hlT(c.m+' '+c.mod,raw)}</div><div class="sug-sub">${c.v} · ${c.y}</div></div>
+      <div class="sug-val" style="${SV(c.f)}">${FI[c.f]||'⛽'} ${FL(c.f)}</div>
+    </div>`;
+  }).join('');
+  box._data=res;box.classList.remove('hidden');
+}
+
+function hlT(text,q){return nrm(q).split(' ').filter(Boolean).reduce((t,tok)=>t.replace(new RegExp(`(${tok.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'),'<em>$1</em>'),text)}
+function hSug(){document.getElementById('sugBox').classList.add('hidden');aIdx=-1}
+function onKey(e){
+  const box=document.getElementById('sugBox');const hid=box.classList.contains('hidden');
+  if(e.key==='ArrowDown'){e.preventDefault();if(!hid)mAct(1)}
+  else if(e.key==='ArrowUp'){e.preventDefault();if(!hid)mAct(-1)}
+  else if(e.key==='Enter'){e.preventDefault();if(!hid&&aIdx>=0)pick(aIdx)}
+  else if(e.key==='Escape')hSug();
+}
+function mAct(d){
+  const it=document.querySelectorAll('.sug-item');if(!it.length)return;
+  aIdx=Math.max(0,Math.min(aIdx+d,it.length-1));
+  it.forEach((el,i)=>el.classList.toggle('active',i===aIdx));
+}
+function pick(i){
+  const box=document.getElementById('sugBox');const c=box._data[i];if(!c)return;
+  if(cars.includes(c)){hSug();return}
+  if(cars.length>=5)cars.shift();
+  cars.push(c);document.getElementById('si').value='';hSug();render();
+}
+function removeCar(i){cars.splice(i,1);render()}
+
+function render(){
+  hl();
+  const list=document.getElementById('carsList');
+  const cmp=document.getElementById('compareSection');
+  if(!cars.length){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">⛽</div><div class="empty-title">Cerca un modello da confrontare</div><div class="empty-sub">${DB.length} auto verificate · Motor1.it Roma–Forlì 360km</div></div>`;
+    cmp.innerHTML='';return;
+  }
+  list.innerHTML=`<div class="cars-grid">${cars.map((c,i)=>rCard(c,i)).join('')}</div>`;
+  if(cars.length>=2)rChart();
+  else cmp.innerHTML=`<div class="compare-bar"><span class="compare-label">Aggiungi un'altra auto per confrontare</span></div>`;
+}
+
+function rCard(c,i){
+  const col=C[i%C.length];
+  const km=parseFloat(document.getElementById('kmAnno').value)||15000;
+  const p=gP(c.f),cp=cP(c),isEv=c.ev,isG=c.f==='gpl',isM=c.f==='metano';
+  const u=isEv?'kWh/100km':isG?'l GPL/100km':isM?'kg/100km':'l/100km',us=isEv?'kWh':isM?'kg':'l';
+  const q=cp*km/100,ca=q*p,b=fbadge(c);
+  const fmt=(v,u2)=>v!=null?`<div class="tratto-val">${v}<small> ${u2}</small></div><div class="tratto-km">${isEv?(1000/v).toFixed(0)+' km/kWh':isM?(100/v).toFixed(0)+' km/kg':(100/v).toFixed(0)+' km/l'}</div>`:`<div class="tratto-val nd">n/d</div>`;
+  return`<div class="car-card">
+    <button class="car-remove" onclick="removeCar(${i})">×</button>
+    <span class="fuel-badge ${b.cls}">${b.lbl}</span>
+    <div class="car-head"><div class="car-dot" style="background:${col}"></div><div class="car-name">${c.m} ${c.mod}</div></div>
+    <div class="car-version">${c.v} · ${c.y}</div>
+    <div class="tratti">
+      <div class="tratto" style="border-bottom-color:${col}"><div class="tratto-label">🏙 Misto</div>${fmt(c.mi,us)}</div>
+      <div class="tratto" style="border-bottom-color:${col}"><div class="tratto-label">🛣 Autostrada</div>${fmt(c.au,us)}</div>
+      <div class="tratto" style="border-bottom-color:${col}"><div class="tratto-label">🍃 Economy</div>${fmt(c.ec,us)}</div>
+    </div>
+    ${isEv?'<div class="ev-note">⚡ Valori in kWh/100km</div>':''}
+    ${isG?'<div class="ev-note">💧 Valori in l/100km di GPL</div>':''}
+    ${isM?'<div class="ev-note">🌿 Valori in kg/100km di metano</div>':''}
+    <div class="costo-box">
+      <div class="costo-label">📍 Con il tuo profilo · ${pM}% misto · ${pA}% autostrada</div>
+      <div class="costo-grid">
+        <div class="costo-item"><div class="costo-item-label">Consumo stimato</div><div class="costo-item-val">${cp.toFixed(1)}<small> ${u}</small></div></div>
+        <div class="costo-item"><div class="costo-item-label">${us}/anno</div><div class="costo-item-val">${Math.round(q)}<small> ${us}</small></div></div>
+        <div class="costo-item"><div class="costo-item-label">Costo annuo</div><div class="costo-item-val">${Math.round(ca).toLocaleString('it-IT')}<small> €</small></div></div>
+        <div class="costo-item"><div class="costo-item-label">Costo mensile</div><div class="costo-item-val">${Math.round(ca/12)}<small> €/mese</small></div></div>
+      </div>
+      <div class="costo-prezzo-note">${FPL(c.f)}</div>
+    </div>
+    <div class="source-note"><a href="${c.url}" target="_blank">→ Test completo su Motor1.it</a></div>
+  </div>`;
+}
+
+function setTab(t){
+  aTab=t;
+  document.querySelectorAll('.chart-tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===t));
+  rBars();
+}
+
+function rChart(){
+  const cmp=document.getElementById('compareSection');
+  const tabs=[{k:'personal',l:'Il tuo profilo'},{k:'mi',l:'🏙 Misto'},{k:'au',l:'🛣 Autostrada'},{k:'ec',l:'🍃 Economy'},{k:'costo',l:'💶 Costo annuo'}];
+  cmp.innerHTML=`<div class="chart-area"><div class="chart-title">Confronto</div>
+    <div class="chart-tabs">${tabs.map(t=>`<button class="chart-tab${aTab===t.k?' active':''}" data-tab="${t.k}" onclick="setTab('${t.k}')">${t.l}</button>`).join('')}</div>
+    <div id="chartBars"></div></div>`;
+  rBars();
+}
+
+function rBars(){
+  const el=document.getElementById('chartBars');if(!el)return;
+  const km=parseFloat(document.getElementById('kmAnno').value)||15000;
+  const ic=aTab==='costo';
+  const gV=c=>aTab==='personal'?cP(c):ic?cP(c)*km/100*gP(c.f):c[aTab]||null;
+  const vals=cars.map(c=>gV(c)).filter(v=>v!=null);
+  if(!vals.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px 0">Dati non disponibili</div>';return;}
+  const mx=Math.max(...vals),mn=Math.min(...vals);
+  el.innerHTML=cars.map((c,i)=>{
+    const v=gV(c);if(v==null)return`<div class="bar-row"><div class="bar-name">${c.m} ${c.mod}</div><div style="font-size:11px;color:var(--muted)">n/d</div></div>`;
+    const col=C[i%C.length],best=v===mn&&vals.length>1;
+    const lbl=ic?Math.round(v).toLocaleString('it-IT')+'<small> €/anno</small>':v.toFixed(1)+(c.ev&&!ic?'<small> kWh/100</small>':'<small> l/100</small>');
+    return`<div class="bar-row">
+      <div class="bar-name" title="${c.m} ${c.mod}">${c.m} ${c.mod}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(v/mx*100).toFixed(1)}%;background:${col}"></div></div>
+      <div class="bar-num" style="color:${col}">${lbl}${best?' <span style="color:#5be898;font-size:11px">✓</span>':''}</div>
+    </div>`;
+  }).join('');
+}
+
+
+// ——— MIMIT: carica prezzi carburante regionali dal PDF ufficiale ———
+// Dati regionali aggiornati al 17/05/2026 (fonte: PDF MediaRegionaleStradale MIMIT)
+// Il fetch live del PDF non è parsabile via JS; i dati embedded sono la fonte principale.
+
+const MIMIT_DATA = {
+  "Abruzzo":              {benzina:1.940, diesel:1.977, gpl:0.810, metano:1.513},
+  "Basilicata":           {benzina:1.963, diesel:1.994, gpl:0.784, metano:1.567},
+  "Calabria":             {benzina:1.959, diesel:1.993, gpl:0.855, metano:1.661},
+  "Campania":             {benzina:1.937, diesel:1.968, gpl:0.773, metano:1.534},
+  "Emilia Romagna":       {benzina:1.947, diesel:1.977, gpl:0.808, metano:1.528},
+  "Friuli Venezia Giulia":{benzina:1.960, diesel:1.991, gpl:0.803, metano:1.517},
+  "Lazio":                {benzina:1.933, diesel:1.973, gpl:0.796, metano:1.654},
+  "Liguria":              {benzina:1.947, diesel:1.985, gpl:0.893, metano:1.531},
+  "Lombardia":            {benzina:1.938, diesel:1.974, gpl:0.805, metano:1.549},
+  "Marche":               {benzina:1.928, diesel:1.968, gpl:0.833, metano:1.529},
+  "Molise":               {benzina:1.944, diesel:2.001, gpl:0.823, metano:1.481},
+  "Piemonte":             {benzina:1.939, diesel:1.975, gpl:0.804, metano:1.556},
+  "Puglia":               {benzina:1.952, diesel:1.980, gpl:0.789, metano:1.629},
+  "Sardegna":             {benzina:1.954, diesel:1.996, gpl:0.882, metano:null},
+  "Sicilia":              {benzina:1.948, diesel:1.992, gpl:0.834, metano:1.820},
+  "Toscana":              {benzina:1.945, diesel:1.979, gpl:0.813, metano:1.600},
+  "Umbria":               {benzina:1.939, diesel:1.975, gpl:0.825, metano:1.501},
+  "Valle D'aosta":        {benzina:1.956, diesel:1.996, gpl:0.904, metano:null},
+  "Veneto":               {benzina:1.940, diesel:1.964, gpl:0.811, metano:1.498},
+  "Bolzano":              {benzina:1.969, diesel:2.010, gpl:0.883, metano:1.730},
+  "Trento":               {benzina:1.950, diesel:1.990, gpl:0.834, metano:1.548},
+};
+
+const MIMIT_DATE = '17/05/2026';
+
+function flashCard(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('prezzo-updated');
+  void el.offsetWidth; // reflow per riattivare animazione
+  el.classList.add('prezzo-updated');
+}
+
+async function loadMIMIT() {
+  const regione = document.getElementById('regioneSelect').value;
+  const status = document.getElementById('mimitStatus');
+  const btn = document.getElementById('mimitBtn');
+  if (!regione) {
+    status.textContent = '⚠ Seleziona prima una regione';
+    status.style.color = '#f5c060';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Caricamento…';
+  status.textContent = 'Lettura dati regionali…';
+  status.style.color = 'var(--muted)';
+
+  // Piccola pausa per UX (simula fetch)
+  await new Promise(r => setTimeout(r, 450));
+
+  const d = MIMIT_DATA[regione];
+  if (d) {
+    // Aggiorna i prezzi nei campi input
+    document.getElementById('p-benzina').value = d.benzina.toFixed(3);
+    document.getElementById('p-diesel').value  = d.diesel.toFixed(3);
+    document.getElementById('p-gpl').value     = d.gpl.toFixed(3);
+    if (d.metano) {
+      document.getElementById('p-metano').value = d.metano.toFixed(3);
+    } else {
+      // Metano non disponibile in questa regione (es. Sardegna, Valle d'Aosta)
+      document.getElementById('p-metano').value = '';
+    }
+    // Nota: prezzo elettricità non è nel dataset MIMIT — rimane quello impostato dall'utente
+
+    // Animazione flash sulle card aggiornate
+    ['card-benzina','card-diesel','card-gpl','card-metano'].forEach(id => flashCard(id));
+
+    // Stato OK
+    status.innerHTML = `✓ Prezzi ${regione} — MIMIT ${MIMIT_DATE}`;
+    status.style.color = '#5be898';
+
+    render();
+  } else {
+    status.textContent = '✗ Regione non trovata';
+    status.style.color = '#f87171';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⬇ Carica prezzi';
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  GARAGE — Il mio garage
+// ══════════════════════════════════════════════════════════════
+
+function switchPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ── Stato ─────────────────────────────────────────────────────
+let gCarInfo = {marca:'', modello:'', versione:'', anno:'', fuel:'benzina'};
+let gRiforn  = []; // [{id, data, odo, qta, prezzo}]
+
+function loadGarageData() {
+  try {
+    const ci = localStorage.getItem('fc_carinfo');
+    if (ci) gCarInfo = {...gCarInfo, ...JSON.parse(ci)};
+    const ri = localStorage.getItem('fc_riforn');
+    if (ri) gRiforn = JSON.parse(ri);
+  } catch(e) {}
+}
+
+function saveGarageData() {
+  localStorage.setItem('fc_carinfo', JSON.stringify(gCarInfo));
+  localStorage.setItem('fc_riforn',  JSON.stringify(gRiforn));
+}
+
+// ── Popola select dal DB ───────────────────────────────────────
+function populateCarSelect() {
+  const sel = document.getElementById('gCarSelect');
+  // Raggruppa per marca
+  const grouped = {};
+  DB.forEach(c => {
+    if (!grouped[c.m]) grouped[c.m] = [];
+    grouped[c.m].push(c);
+  });
+  Object.keys(grouped).sort().forEach(marca => {
+    const og = document.createElement('optgroup');
+    og.label = marca;
+    grouped[marca].forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({marca:c.m, modello:c.mod, versione:c.v, fuel:c.f, anno:c.y});
+      opt.textContent = `${c.mod} ${c.v} (${c.y})`;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+}
+
+function onGarageCarSelect(val) {
+  if (!val) return;
+  try {
+    const d = JSON.parse(val);
+    gCarInfo = {...gCarInfo, ...d, anno: String(d.anno || '')};
+    applyCarInfoToUI();
+    saveCarInfo();
+  } catch(e) {}
+}
+
+function applyCarInfoToUI() {
+  document.getElementById('gMarca').value   = gCarInfo.marca   || '';
+  document.getElementById('gModello').value = gCarInfo.modello || '';
+  document.getElementById('gVersione').value= gCarInfo.versione|| '';
+  document.getElementById('gAnno').value    = gCarInfo.anno    || '';
+  selectFuel(gCarInfo.fuel || 'benzina', false);
+}
+
+function saveCarInfo() {
+  gCarInfo.marca    = document.getElementById('gMarca').value;
+  gCarInfo.modello  = document.getElementById('gModello').value;
+  gCarInfo.versione = document.getElementById('gVersione').value;
+  gCarInfo.anno     = document.getElementById('gAnno').value;
+  saveGarageData();
+}
+
+function selectFuel(fuel, save=true) {
+  gCarInfo.fuel = fuel;
+  document.querySelectorAll('.fuel-chip').forEach(btn => {
+    btn.className = 'fuel-chip';
+    if (btn.dataset.fuel === fuel) btn.classList.add('sel-' + fuel);
+  });
+  // Aggiorna label quantità
+  const isEv = fuel === 'elettrica', isM = fuel === 'metano';
+  document.getElementById('rQtaLabel').textContent = isEv ? 'kWh ricaricati' : isM ? 'kg erogati' : 'Litri erogati';
+  const th = document.getElementById('thQta');
+  if (th) th.textContent = isEv ? 'kWh' : isM ? 'kg' : 'Litri';
+  if (save) saveCarInfo();
+}
+
+// ── Form rifornimento ──────────────────────────────────────────
+function setTodayDate() {
+  const d = new Date();
+  const s = d.toISOString().split('T')[0];
+  const el = document.getElementById('rData');
+  if (el && !el.value) el.value = s;
+}
+
+// ── Contributo automatico alla community ad ogni rifornimento ─
+async function pushToComm(riforn, prevOverride) {
+  if (!gCarInfo.marca || !gCarInfo.modello) return;
+  const prev = prevOverride || gRiforn.filter(x => x.odo < riforn.odo && x.id !== riforn.id)
+                                       .sort((a,b) => b.odo - a.odo)[0] || null;
+  if (!prev) return;
+  const km = riforn.odo - prev.odo;
+  if (km <= 0 || riforn.qta <= 0) return;
+  const cons = riforn.qta / km * 100;
+  if (cons < 1 || cons > 60) return;
+  await loadCommData();
+  const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
+  const contrib = {
+    marca:    gCarInfo.marca,
+    modello:  gCarInfo.modello,
+    versione: gCarInfo.versione || null,
+    fuel:     gCarInfo.fuel || 'benzina',
+    misto:    parseFloat(cons.toFixed(2)),
+    autostr:  parseFloat(cons.toFixed(2)),
+    kmAnno:   null,
+    annoImm:  gCarInfo.anno || null,
+    profilo:  'misto',
+    note:     `Da rifornimento del ${riforn.data}`,
+    ts:       Date.now()
+  };
+  commContribs[key] = commContribs[key] || [];
+  commContribs[key].push(contrib);
+  try { await pushCommContrib(key, contrib); } catch(e) { console.warn('pushCommContrib error:', e); }
+  renderCommResults();
+  updateCommCount();
+}
+
+async function pushCommContrib(key, data) {
+  try {
+    await fetch(COMM_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({key, data})
+    });
+  } catch(e) {
+    console.warn('KV write failed', e);
+  }
+}
+
+// ── Form community: input libero ─────────────────────────────
+let commFuel = 'benzina';
+
+function selectCommFuel(fuel) {
+  commFuel = fuel;
+  document.querySelectorAll('[data-cfuel]').forEach(btn => {
+    btn.className = 'fuel-chip';
+    if (btn.dataset.cfuel === fuel) btn.classList.add('sel-' + fuel);
+  });
+  const isEv = fuel === 'elettrica', isM = fuel === 'metano';
+  const unit = isEv ? 'kWh/100km' : isM ? 'kg/100km' : 'l/100km';
+  document.getElementById('commMistoLabel').textContent = `Consumo misto (${unit})`;
+  document.getElementById('commAutoLabel').textContent  = `Consumo autostrada (${unit})`;
+}
+
+function onCommCarInput() {
+  // Aggiorna la chiave auto basata su marca+modello
+  const marca = document.getElementById('commMarca').value.trim();
+  const modello = document.getElementById('commModello').value.trim();
+  commCarKey = (marca && modello) ? `${marca}|${modello}`.toLowerCase() : null;
+}
+
+// ── Submit contributo ─────────────────────────────────────────
+async function submitContrib() {
+  const fb = document.getElementById('commFeedback');
+  const marca   = document.getElementById('commMarca').value.trim();
+  const modello = document.getElementById('commModello').value.trim();
+  const versione= document.getElementById('commVersione').value.trim();
+  if (!marca || !modello) { fb.style.color='#f5c060'; fb.textContent='⚠ Inserisci almeno marca e modello'; return; }
+  commCarKey = `${marca}|${modello}`.toLowerCase();
+  const misto   = parseFloat(document.getElementById('commMisto').value);
+  const autostr = parseFloat(document.getElementById('commAuto').value);
+  const kmAnno  = parseFloat(document.getElementById('commKmAnno').value);
+  const annoImm = document.getElementById('commAnnoImm').value;
+  const profilo = document.getElementById('commProfilo').value;
+  const note    = document.getElementById('commNote').value.trim().slice(0,80);
+
+  if (isNaN(misto) || isNaN(autostr)) {
+    fb.style.color='#f5c060'; fb.textContent='⚠ Inserisci almeno misto e autostrada'; return;
+  }
+  if (misto < 1 || misto > 50 || autostr < 1 || autostr > 60) {
+    fb.style.color='#f87171'; fb.textContent='✗ Valori fuori range — controlla i dati'; return;
+  }
+
+  fb.style.color='var(--muted)'; fb.textContent='⏳ Invio in corso...';
+
+  const contrib = {marca, modello, versione:versione||null, fuel:commFuel, misto, autostr: autostr, kmAnno: isNaN(kmAnno)?null:kmAnno, annoImm:annoImm||null, profilo, note, ts: Date.now()};
+
+  if (!commContribs[commCarKey]) commContribs[commCarKey] = [];
+  commContribs[commCarKey].push(contrib);
+  await pushCommContrib(commCarKey, contrib);
+
+  // Reset form
+  ['commMarca','commModello','commVersione','commMisto','commAuto','commKmAnno','commAnnoImm','commNote'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  commCarKey = null; commFuel = 'benzina';
+  selectCommFuel('benzina');
+
+  fb.style.color='#5be898';
+  fb.textContent=`✓ Contributo inviato! Grazie 🙏`;
+  setTimeout(()=>{ fb.textContent=''; }, 4000);
+
+  renderCommResults();
+  updateCommCount();
+}
+
+// ── Aggiorna contatore hero ───────────────────────────────────
+function updateCommCount() {
+  const total = Object.values(commContribs).reduce((s,arr)=>s+arr.length,0);
+  document.getElementById('commTotalCount').textContent = total.toLocaleString('it');
+}
+
+// ── Render risultati community ────────────────────────────────
+let commFilter = '';
+
+function filterCommResults() {
+  commFilter = document.getElementById('commSearch').value.toLowerCase();
+  renderCommResults();
+}
+
+function renderCommResults() {
+  const container = document.getElementById('commResults');
+
+  // Tutte le auto con almeno 1 contributo, ordinate per numero
+  const cars = Object.entries(commContribs)
+    .filter(([key, arr]) => arr.length > 0)
+    .map(([key, arr]) => ({key, arr}))
+    .filter(({key, arr}) => {
+      if (!commFilter) return true;
+      const firstC = arr[0];
+      const label = `${firstC.marca||''} ${firstC.modello||''} ${firstC.versione||''}`.toLowerCase();
+      return label.includes(commFilter) || key.includes(commFilter);
+    })
+    .sort((a,b) => b.arr.length - a.arr.length);
+
+  if (cars.length === 0) {
+    container.innerHTML = commFilter
+      ? `<div class="comm-empty"><div class="comm-empty-icon">🔍</div><div>Nessun contributo per "${commFilter}"</div></div>`
+      : `<div class="comm-empty"><div class="comm-empty-icon">👥</div><div>Ancora nessun contributo.<br>Sii il primo!</div></div>`;
+    return;
+  }
+
+  container.innerHTML = cars.map(({key, arr}) => {
+    const n = arr.length;
+    // Prendi marca/modello dal primo contributo (tutti hanno gli stessi)
+    const firstC = arr[0];
+    const displayMarca = firstC.marca || key.split('|')[0];
+    const displayMod   = firstC.modello || key.split('|')[1];
+    const displayVer   = firstC.versione || '';
+    const name = `${displayMarca} ${displayMod}${displayVer ? ` <small>${displayVer}</small>` : ''}`;
+    const isEv = firstC.fuel === 'elettrica';
+    const isM  = firstC.fuel === 'metano';
+    const unit = isEv ? 'kWh' : isM ? 'kg' : 'l';
+
+    // Media community (solo se ≥5)
+    const showAvg = n >= 5;
+    const avgMisto = arr.reduce((s,r)=>s+r.misto,0)/n;
+    const avgAutostr = arr.reduce((s,r)=>s+r.autostr,0)/n;
+    const avgKm    = arr.filter(r=>r.kmAnno).length > 0
+      ? arr.filter(r=>r.kmAnno).reduce((s,r)=>s+r.kmAnno,0)/arr.filter(r=>r.kmAnno).length
+      : null;
+
+    // Confronto con dati Motor1
+    // Cerca corrispondenza nel DB Motor1 per marca/modello
+    const dbCar = DB.find(c =>
+      c.m.toLowerCase() === displayMarca.toLowerCase() &&
+      c.mod.toLowerCase() === displayMod.toLowerCase()
+    );
+    let vsHtml = '';
+    if (showAvg && dbCar && dbCar.mi) {
+      const diff = avgMisto - dbCar.mi;
+      const pct  = (diff/dbCar.mi*100).toFixed(1);
+      const cls  = diff <= 0 ? 'better' : 'worse';
+      const sign = diff > 0 ? '+' : '';
+      vsHtml = `<div class="comm-vs">
+        📊 Motor1: <span class="comm-vs-val">${dbCar.mi} ${unit}/100km misto</span>
+        &nbsp;·&nbsp; Community: <span class="comm-vs-val ${cls}">${avgMisto.toFixed(2)} ${unit}/100km</span>
+        &nbsp;<span class="comm-vs-val ${cls}">(${sign}${pct}%)</span>
+      </div>`;
+    }
+
+    // Averages boxes
+    const avgBoxes = showAvg ? `
+      <div class="comm-averages">
+        <div class="comm-avg-box">
+          <div class="comm-avg-val">${avgMisto.toFixed(2)}</div>
+          <div class="comm-avg-label">${unit}/100 misto</div>
+        </div>
+        <div class="comm-avg-box">
+          <div class="comm-avg-val">${avgAutostr.toFixed(2)}</div>
+          <div class="comm-avg-label">${unit}/100 autostrada</div>
+        </div>
+        <div class="comm-avg-box">
+          <div class="comm-avg-val">${avgKm ? Math.round(avgKm).toLocaleString('it') : '—'}</div>
+          <div class="comm-avg-label">km/anno medi</div>
+        </div>
+      </div>` : `<div style="font-size:12px;color:var(--muted);margin-bottom:8px">
+        ⏳ Servono ancora <strong>${5-n}</strong> contributi per mostrare la media
+      </div>`;
+
+    // Mini dots (uno per contributo)
+    const dots = arr.map(r =>
+      `<div class="comm-dot" title="${r.misto} ${unit}/100 misto · ${r.autostr} autostrada · ${r.profilo}${r.note?' · '+r.note:''}"></div>`
+    ).join('');
+
+    return `<div class="comm-car-card" id="comm-${key.replace(/[^a-z0-9]/g,'-')}">
+      <div class="comm-car-header">
+        <div class="comm-car-name">${name}</div>
+        <div class="comm-car-count">${n} contribut${n===1?'o':'i'}</div>
+      </div>
+      ${avgBoxes}
+      ${vsHtml}
+      <div class="comm-dots">${dots}</div>
+    </div>`;
+  }).join('');
+
+  updateCommCount();
+}
+
+// ── Badge community nelle card confronto ──────────────────────
+function getCommAvg(carUrl) {
+  const arr = commContribs[carUrl];
+  if (!arr || arr.length < 5) return null;
+  return {
+    misto: arr.reduce((s,r)=>s+r.misto,0)/arr.length,
+    autostr: arr.reduce((s,r)=>s+r.autostr,0)/arr.length,
+    n: arr.length
+  };
+}
+
+// ── Init community ────────────────────────────────────────────
+async function initCommunity() {
+  await loadCommData();
+  renderCommResults();
+  updateCommCount();
+}
+
+document.addEventListener('click',e=>{if(!e.target.closest('.search-area'))hSug()});
+// Aggiorna contatori con numero reale dal DB
+document.getElementById('carCount').textContent = `✓ ${DB.length} auto · prezzi MIMIT live`;
+document.getElementById('si').placeholder = `Cerca tra ${DB.length} modelli… DS, Dacia, BMW, Audi, Alfa, Citroen, Cupra…`;
+// Carica prezzi Emilia Romagna di default
+loadMIMIT();
+render();
+</script>
+</div><!-- /page-compare -->
+
+<div id="page-garage" class="page">
+<div class="garage-area">
+
+  <!-- Sezione: la tua auto -->
+  <div class="garage-section">
+    <div class="garage-title">🚗 La tua auto</div>
+    <div class="car-selector-wrap">
+      <select class="car-selector" id="gCarSelect" onchange="onGarageCarSelect(this.value)">
+        <option value="">— Seleziona dal database oppure inserisci manualmente —</option>
+      </select>
+      <span class="car-selector-chevron">▾</span>
+    </div>
+    <div class="car-custom-row">
+      <div>
+        <div class="car-custom-label">Marca</div>
+        <input class="g-input" id="gMarca" placeholder="es. Volkswagen" oninput="saveCarInfo()"/>
+      </div>
+      <div>
+        <div class="car-custom-label">Modello</div>
+        <input class="g-input" id="gModello" placeholder="es. Golf" oninput="saveCarInfo()"/>
+      </div>
+    </div>
+    <div class="car-custom-row">
+      <div>
+        <div class="car-custom-label">Versione / motore</div>
+        <input class="g-input" id="gVersione" placeholder="es. 1.5 TSI 130cv" oninput="saveCarInfo()"/>
+      </div>
+      <div>
+        <div class="car-custom-label">Anno immatricolazione</div>
+        <input class="g-input" id="gAnno" type="number" placeholder="es. 2022" oninput="saveCarInfo()"/>
+      </div>
+    </div>
+    <div class="fuel-selector-wrap">
+      <div class="car-custom-label" style="margin-bottom:6px">Carburante</div>
+      <div class="fuel-chips">
+        <button class="fuel-chip" data-fuel="benzina" onclick="selectFuel('benzina')">⛽ Benzina</button>
+        <button class="fuel-chip" data-fuel="diesel" onclick="selectFuel('diesel')">🛢 Diesel</button>
+        <button class="fuel-chip" data-fuel="gpl" onclick="selectFuel('gpl')">💧 GPL</button>
+        <button class="fuel-chip" data-fuel="metano" onclick="selectFuel('metano')">🌿 Metano</button>
+        <button class="fuel-chip" data-fuel="elettrica" onclick="selectFuel('elettrica')">⚡ Elettrica</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Sezione: nuovo rifornimento -->
+  <div class="garage-section">
+    <div class="garage-title">⛽ Aggiungi rifornimento</div>
+    <div class="riforn-form">
+      <!-- Foto display distributore -->
+      <div class="photo-btn-wrap">
+        <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(this)"/>
+        <button class="btn-photo" id="photoBtn" onclick="document.getElementById('photoInput').click()">
+          📷 Scatta foto display distributore
+        </button>
+      </div>
+      <div class="photo-preview" id="photoPreview">
+        <img id="photoImg" src="" alt="Display distributore"/>
+        <button class="photo-preview-remove" onclick="removePhoto()" title="Rimuovi foto">✕</button>
+      </div>
+      <div class="photo-status" id="photoStatus"></div>
+      <div class="photo-result" id="photoResult"></div>
+      <!-- Foto odometro -->
+      <div class="photo-btn-wrap">
+        <input type="file" id="photoOdoInput" accept="image/*" capture="environment" style="display:none" onchange="onOdoPhotoSelected(this)"/>
+        <button class="btn-photo-odo" id="photoOdoBtn" onclick="document.getElementById('photoOdoInput').click()">
+          🚗 Fotografa odometro / cruscotto
+        </button>
+      </div>
+      <div class="photo-preview-odo" id="photoPreviewOdo">
+        <img id="photoOdoImg" src="" alt="Odometro"/>
+        <button class="photo-preview-remove" onclick="removeOdoPhoto()" title="Rimuovi foto" style="top:6px;right:6px">✕</button>
+      </div>
+      <div class="photo-odo-status" id="photoOdoStatus"></div>
+      <!-- Campi manuali -->
+      <div class="riforn-grid-4">
+        <div>
+          <div class="g-label">Data</div>
+          <input class="g-input" id="rData" type="date"/>
+        </div>
+        <div>
+          <div class="g-label">Odometro (km)</div>
+          <input class="g-input" id="rOdo" type="number" placeholder="es. 45230" min="0"/>
+        </div>
+        <div>
+          <div class="g-label" id="rQtaLabel">Litri erogati</div>
+          <input class="g-input" id="rQta" type="number" placeholder="es. 42.5" min="0" step="0.1"/>
+        </div>
+        <div>
+          <div class="g-label">Prezzo pagato (€)</div>
+          <input class="g-input" id="rPrezzo" type="number" placeholder="es. 78.20" min="0" step="0.01"/>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addRifornimento()">＋ Aggiungi rifornimento</button>
+    </div>
+  </div>
+
+  <!-- Sezione: statistiche -->
+  <div class="garage-section" id="gStatsSection" style="display:none">
+    <div class="garage-title">📊 Statistiche</div>
+    <div class="stats-grid" id="gStatsGrid"></div>
+  </div>
+
+  <!-- Sezione: grafico consumi -->
+  <div class="garage-section" id="gChartConsSection" style="display:none">
+    <div class="garage-title">📈 Consumi nel tempo</div>
+    <div class="chart-svg-wrap" id="gChartCons"></div>
+  </div>
+
+  <!-- Sezione: grafico spesa -->
+  <div class="garage-section" id="gChartSpesaSection" style="display:none">
+    <div class="garage-title">💶 Spesa per rifornimento</div>
+    <div class="chart-svg-wrap" id="gChartSpesa"></div>
+  </div>
+
+  <!-- Sezione: storico -->
+  <div class="garage-section" id="gHistSection" style="display:none">
+    <div class="garage-title">📋 Storico rifornimenti</div>
+    <div class="riforn-table-wrap">
+      <table class="riforn-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Odometro</th>
+            <th>Km percorsi</th>
+            <th id="thQta">Litri</th>
+            <th>€ Totale</th>
+            <th>€/L</th>
+            <th>Consumo</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="gHistBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <div class="garage-empty" id="gEmpty">
+    <div class="garage-empty-icon">🚗</div>
+    <div class="garage-empty-text">Inserisci la tua auto e il primo rifornimento per iniziare a tracciare i consumi</div>
+  </div>
+
+</div>
+</div><!-- /page-garage -->
+
+<div id="page-community" class="page">
+<div class="comm-area">
+
+  <div class="comm-hero">
+    <div class="comm-count" id="commTotalCount">—</div>
+    <div style="font-size:11px;color:var(--muted);margin:2px 0 8px">contributi dalla community</div>
+    <div class="comm-hero-title">📊 Consumi reali verificati</div>
+    <div class="comm-hero-sub">Ogni rifornimento che inserisci nel tuo Garage contribuisce automaticamente · Almeno 5 contributi per mostrare la media</div>
+  </div>
+
+  <!-- Ricerca auto nella community -->
+  <div class="garage-section">
+    <div class="garage-title">🔍 Esplora i dati community</div>
+    <div class="comm-search-wrap">
+      <input class="comm-search" id="commSearch" placeholder="Cerca un'auto... es. Dacia Duster, Honda Civic..." oninput="filterCommResults()"/>
+    </div>
+    <div id="commResults">
+      <div class="comm-loading">⏳ Caricamento dati community...</div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /page-community -->
+
+</body>
+</html>
