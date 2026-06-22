@@ -1091,6 +1091,127 @@ function deleteRifornimento(id) {
   renderGarage();
 }
 
+function computeRows() {
+  return gRiforn.map((r, i) => {
+    const prev = i > 0 ? gRiforn[i-1] : null;
+    const km   = prev ? r.odo - prev.odo : null;
+    const cons = (km && km > 0 && r.qta > 0) ? (r.qta / km * 100) : null;
+    const prezzo_u = r.qta > 0 ? r.prezzo / r.qta : null;
+    return {r, km, cons, prezzo_u};
+  });
+}
+
+function renderGarage() {
+  const rows = computeRows();
+  const hasData = gRiforn.length > 0;
+  document.getElementById('gEmpty').style.display = hasData ? 'none' : 'block';
+  ['gStatsSection','gChartConsSection','gChartSpesaSection','gHistSection'].forEach(id => {
+    document.getElementById(id).style.display = hasData ? '' : 'none';
+  });
+  if (!hasData) return;
+  renderStats(rows);
+  renderHistTable(rows);
+  renderChartCons(rows);
+  renderChartSpesa(rows);
+}
+
+function renderStats(rows) {
+  const consRows = rows.filter(r => r.cons !== null);
+  const avgCons  = consRows.length ? (consRows.reduce((s,r) => s + r.cons, 0) / consRows.length) : null;
+  const totSpesa = gRiforn.reduce((s,r) => s + r.prezzo, 0);
+  const totKm    = gRiforn.length > 1 ? (gRiforn[gRiforn.length-1].odo - gRiforn[0].odo) : null;
+  const totQta   = gRiforn.reduce((s,r) => s + r.qta, 0);
+  const fuel     = gCarInfo.fuel || 'benzina';
+  const isEv = fuel === 'elettrica', isM = fuel === 'metano';
+  const unit = isEv ? 'kWh/100km' : isM ? 'kg/100km' : 'l/100km';
+  const grid = document.getElementById('gStatsGrid');
+  grid.innerHTML = [
+    {v: avgCons !== null ? avgCons.toFixed(2) + ` <small>${unit}</small>` : '–', l:'Consumo medio'},
+    {v: totKm !== null ? totKm.toLocaleString('it') + ' <small>km</small>' : '–', l:'Km totali tracciati'},
+    {v: totSpesa.toFixed(2) + ' <small>€</small>', l:'Spesa totale carburante'},
+    {v: totQta.toFixed(1) + ` <small>${isEv?'kWh':isM?'kg':'litri'}</small>`, l:`Totale ${isEv?'kWh ricaricati':isM?'kg erogati':'litri erogati'}`},
+  ].map(s => `<div class="stat-card"><div class="stat-val">${s.v}</div><div class="stat-label">${s.l}</div></div>`).join('');
+}
+
+function renderHistTable(rows) {
+  const fuel = gCarInfo.fuel || 'benzina';
+  const isEv = fuel === 'elettrica', isM = fuel === 'metano';
+  const allCons = rows.filter(r=>r.cons!==null).map(r=>r.cons);
+  const avgC = allCons.length ? allCons.reduce((a,b)=>a+b,0)/allCons.length : null;
+  const tbody = document.getElementById('gHistBody');
+  tbody.innerHTML = [...rows].reverse().map(({r, km, cons, prezzo_u}) => {
+    const goodBadge = cons !== null && avgC !== null
+      ? `<span class="cons-badge ${cons <= avgC ? 'good' : ''}">${cons.toFixed(2)}</span>`
+      : '–';
+    return `<tr>
+      <td>${r.data.split('-').reverse().join('/')}</td>
+      <td>${r.odo.toLocaleString('it')} km</td>
+      <td>${km !== null ? km.toLocaleString('it') + ' km' : '–'}</td>
+      <td>${r.qta.toFixed(1)}</td>
+      <td>${r.prezzo.toFixed(2)} €</td>
+      <td>${prezzo_u !== null ? prezzo_u.toFixed(3) + ' €' : '–'}</td>
+      <td>${goodBadge}</td>
+      <td><button class="btn-del" onclick="deleteRifornimento(${r.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderChartCons(rows) {
+  const pts = rows.filter(r => r.cons !== null);
+  const el = document.getElementById('gChartCons');
+  if (pts.length < 2) { el.innerHTML = '<p style="color:var(--muted);font-size:12px;text-align:center;padding:1rem">Inserisci almeno 2 rifornimenti per vedere il grafico dei consumi.</p>'; return; }
+  const W=560, H=200, PL=48, PR=16, PT=16, PB=36;
+  const vals = pts.map(p=>p.cons);
+  const min = Math.max(0, Math.min(...vals) * 0.85), max = Math.max(...vals) * 1.1;
+  const xS = i => PL + i * (W-PL-PR) / (pts.length-1);
+  const yS = v => PT + (1-(v-min)/(max-min)) * (H-PT-PB);
+  const poly = pts.map((p,i) => `${xS(i)},${yS(p.cons)}`).join(' ');
+  const area = `${xS(0)},${H-PB} ` + poly + ` ${xS(pts.length-1)},${H-PB}`;
+  const yTicks = [0.25,0.5,0.75,1.0].map(f => {
+    const v = min + f*(max-min), y = yS(v);
+    return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/><text x="${PL-4}" y="${y+4}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="end">${v.toFixed(1)}</text>`;
+  });
+  const step = Math.ceil(pts.length / 6);
+  const xLabels = pts.filter((_,i) => i%step===0 || i===pts.length-1).map(p => {
+    const i = pts.indexOf(p), d = p.r.data.split('-');
+    return `<text x="${xS(i)}" y="${H-PB+16}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="middle">${d[2]}/${d[1]}</text>`;
+  });
+  const dots = pts.map((p,i) => `<circle cx="${xS(i)}" cy="${yS(p.cons)}" r="4" fill="var(--red)" stroke="var(--dark)" stroke-width="2"><title>${p.r.data}: ${p.cons.toFixed(2)} l/100km</title></circle>`);
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${yTicks.join('')}<polyline points="${area}" fill="rgba(232,50,26,.12)" stroke="none"/><polyline points="${poly}" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linejoin="round"/>${dots.join('')}${xLabels.join('')}</svg>`;
+}
+
+function renderChartSpesa(rows) {
+  const el = document.getElementById('gChartSpesa');
+  if (rows.length < 1) { el.innerHTML = '<p style="color:var(--muted);font-size:12px;text-align:center;padding:1rem">Nessun dato.</p>'; return; }
+  const W=560, H=200, PL=48, PR=16, PT=16, PB=36;
+  const max = Math.max(...rows.map(p=>p.r.prezzo)) * 1.15;
+  const bW = Math.max(6, Math.min(28, (W-PL-PR)/rows.length - 4));
+  const xS = i => PL + (i+0.5) * (W-PL-PR) / rows.length;
+  const yS = v => PT + (1-v/max) * (H-PT-PB);
+  const yTicks = [0.25,0.5,0.75,1.0].map(f => {
+    const v = f*max, y = yS(v);
+    return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/><text x="${PL-4}" y="${y+4}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="end">${v.toFixed(0)}€</text>`;
+  });
+  const step = Math.ceil(rows.length / 6);
+  const xLabels = rows.filter((_,i) => i%step===0 || i===rows.length-1).map(p => {
+    const i = rows.indexOf(p), d = p.r.data.split('-');
+    return `<text x="${xS(i)}" y="${H-PB+16}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="middle">${d[2]}/${d[1]}</text>`;
+  });
+  const bars = rows.map((p,i) => {
+    const y = yS(p.r.prezzo), h = (H-PB) - y;
+    return `<rect x="${xS(i)-bW/2}" y="${y}" width="${bW}" height="${h}" rx="2" fill="rgba(245,158,11,.7)"><title>${p.r.data}: ${p.r.prezzo.toFixed(2)} €</title></rect>`;
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${yTicks.join('')}${bars.join('')}${xLabels.join('')}</svg>`;
+}
+
+function initGarage() {
+  populateCarSelect();
+  loadGarageData();
+  applyCarInfoToUI();
+  setTodayDate();
+  renderGarage();
+}
+
 async function pushToComm(riforn, prevOverride) {
   if (!gCarInfo.marca || !gCarInfo.modello) return;
   const prev = prevOverride || gRiforn.filter(x => x.odo < riforn.odo && x.id !== riforn.id)
