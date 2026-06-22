@@ -1551,6 +1551,14 @@ function renderChartSpesa(rows) {
 
 // ── Init garage ────────────────────────────────────────────────
 function initGarage() {
+	const token = localStorage.getItem('fc_user_token');
+	  if (token) {
+		// Se l'utente è già loggato, nascondiamo la schermata di login
+		document.getElementById('auth-screen').style.display = 'none';
+	  } else {
+		// Se non è loggato, la mostriamo a schermo intero
+		document.getElementById('auth-screen').style.display = 'flex';
+	  }
   initGarageSearch();
   loadGarageData();
   applyCarInfoToUI();
@@ -1575,58 +1583,106 @@ function toggleAuthMode(isRegister) {
   }
 }
 
-// Funzione temporanea di simulazione per testare che la schermata si tolga
-function handleLogin() {
-  const email = document.getElementById('auth-email').value;
+// INDIRIZZO DEL TUO WORKER CLOUDFLARE (Modificalo con il tuo url se necessario)
+const WORKER_URL = "https://fuelcheck-vision.costafabio94fc.workers.dev/"; 
+
+// Gestione dell'Accesso Reale
+async function handleLogin() {
+  const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const msgDiv = document.getElementById('auth-message');
 
   if (!email || !password) {
-    msgDiv.style.textContent = "Compila tutti i campi.";
-    msgDiv.style.color = "var(--red)";
-    msgDiv.style.display = "block";
+    showAuthMessage("Compila tutti i campi.", "var(--red)");
     return;
   }
 
-  // Per ora simuliamo che l'accesso vada a buon fine per testare la UI
-  msgDiv.style.textContent = "Accesso in corso...";
-  msgDiv.style.color = "#4caf50";
-  msgDiv.style.display = "block";
+  showAuthMessage("Accesso in corso...", "#4caf50");
 
-  setTimeout(() => {
-    // Nascondiamo la schermata di autenticazione e mostriamo l'app
-    document.getElementById('auth-screen').style.display = 'none';
-  }, 1000);
+  try {
+    const response = await fetch(`${WORKER_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Errore durante l\'accesso');
+    }
+
+    // Login Riuscito! Salva il token utente nel localStorage locale
+    localStorage.setItem('fc_user_token', result.token);
+    localStorage.setItem('fc_user_email', result.email);
+
+    showAuthMessage("Accesso eseguito! Benvenuto.", "#4caf50");
+
+    setTimeout(() => {
+      // Nasconde la schermata di blocco ed entra nell'app
+      document.getElementById('auth-screen').style.display = 'none';
+    }, 1000);
+
+  } catch (error) {
+    showAuthMessage(error.message, "var(--red)");
+  }
 }
 
-// Funzione temporanea per simulare la registrazione
-function handleRegister() {
-  const email = document.getElementById('reg-email').value;
+// Gestione della Registrazione Reale
+async function handleRegister() {
+  const email = document.getElementById('reg-email').value.trim();
   const pass = document.getElementById('reg-password').value;
   const confirm = document.getElementById('reg-password-confirm').value;
-  const msgDiv = document.getElementById('auth-message');
 
   if (!email || !pass || !confirm) {
-    msgDiv.textContent = "Compila tutti i campi.";
-    msgDiv.style.color = "var(--red)";
-    msgDiv.style.display = "block";
+    showAuthMessage("Compila tutti i campi.", "var(--red)");
+    return;
+  }
+
+  if (pass.length < 6) {
+    showAuthMessage("La password deve contenere almeno 6 caratteri.", "var(--red)");
     return;
   }
 
   if (pass !== confirm) {
-    msgDiv.textContent = "Le password non coincidono.";
-    msgDiv.style.color = "var(--red)";
-    msgDiv.style.display = "block";
+    showAuthMessage("Le password non coincidono.", "var(--red)");
     return;
   }
 
-  msgDiv.textContent = "Account creato! Ora puoi accedere.";
-  msgDiv.style.color = "#4caf50";
+  showAuthMessage("Creazione account in corso...", "#4caf50");
+
+  try {
+    const response = await fetch(`${WORKER_URL}/api/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Errore durante la registrazione');
+    }
+
+    showAuthMessage("✨ Account creato! Ora puoi accedere.", "#4caf50");
+    
+    setTimeout(() => {
+      toggleAuthMode(false); // Riporta l'utente alla schermata di Login
+      // Pre-compila l'email appena registrata per comodità
+      document.getElementById('auth-email').value = email;
+    }, 1800);
+
+  } catch (error) {
+    showAuthMessage(error.message, "var(--red)");
+  }
+}
+
+// Funzione di supporto per mostrare i messaggi di errore/successo
+function showAuthMessage(text, color) {
+  const msgDiv = document.getElementById('auth-message');
+  msgDiv.textContent = text;
+  msgDiv.style.color = color;
   msgDiv.style.display = "block";
-  
-  setTimeout(() => {
-    toggleAuthMode(false); // Riporta l'utente al login
-  }, 1500);
 }
 
 
