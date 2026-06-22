@@ -271,6 +271,68 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 </style>
 </head>
 <body>
+<div id="auth-screen" style="
+  position: fixed; 
+  top: 0; left: 0; right: 0; bottom: 0; 
+  background: var(--dark); 
+  z-index: 9999; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 20px;
+">
+  <div class="garage-section" style="max-width: 400px; width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.6);">
+    <div class="logo" style="text-align: center; font-size: 28px; margin-bottom: 25px;">
+      FUEL<span>CHECK</span>
+    </div>
+
+    <div id="auth-login-box">
+      <div class="car-custom-label" style="font-size: 16px; margin-bottom: 15px; text-align: center; color: #fff;">
+        Accedi al tuo Garage
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div class="car-custom-label">Email</div>
+        <input type="email" class="g-input" id="auth-email" placeholder="es. nome@email.com" />
+      </div>
+      <div style="margin-bottom: 20px;">
+        <div class="car-custom-label">Password</div>
+        <input type="password" class="g-input" id="auth-password" placeholder="••••••••" />
+      </div>
+      <button class="nav-tab active" style="width:100%; padding:12px; margin-bottom:15px; border-radius:4px;" onclick="handleLogin()">
+        🚀 Accedi
+      </button>
+      <div style="text-align: center; font-size: 13px; color: var(--muted);">
+        Non hai un account? <a href="#" onclick="toggleAuthMode(true)" style="color: var(--red); text-decoration: none; font-weight: 600;">Registrati gratis</a>
+      </div>
+    </div>
+
+    <div id="auth-register-box" style="display: none;">
+      <div class="car-custom-label" style="font-size: 16px; margin-bottom: 15px; text-align: center; color: #fff;">
+        Crea il tuo account gratuito
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div class="car-custom-label">Email</div>
+        <input type="email" class="g-input" id="reg-email" placeholder="es. nome@email.com" />
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div class="car-custom-label">Password (min. 6 caratteri)</div>
+        <input type="password" class="g-input" id="reg-password" placeholder="••••••••" />
+      </div>
+      <div style="margin-bottom: 20px;">
+        <div class="car-custom-label">Conferma Password</div>
+        <input type="password" class="g-input" id="reg-password-confirm" placeholder="••••••••" />
+      </div>
+      <button class="nav-tab active" style="width:100%; padding:12px; margin-bottom:15px; border-radius:4px; background-color: #2e7d32;" onclick="handleRegister()">
+        ✨ Crea Account
+      </button>
+      <div style="text-align: center; font-size: 13px; color: var(--muted);">
+        Hai già un account? <a href="#" onclick="toggleAuthMode(false)" style="color: var(--red); text-decoration: none; font-weight: 600;">Accedi qui</a>
+      </div>
+    </div>
+
+    <div id="auth-message" style="margin-top: 15px; font-size: 13px; text-align: center; display: none;"></div>
+  </div>
+</div>
 <div class="header">
   <div><div class="logo">FUEL<span>CHECK</span></div><div class="verified-badge" id="carCount">✓ 143 auto · prezzi MIMIT live</div></div>
   <div class="header-meta">Percorso Roma–Forlì 360km<br><a href="https://it.motor1.com/reviews/category/consumi-reali/" target="_blank">→ fonte originale</a></div>
@@ -1494,6 +1556,77 @@ function initGarage() {
   applyCarInfoToUI();
   setTodayDate();
   renderGarage();
+}
+
+// Funzione per scambiare visivamente tra Login e Registrazione
+function toggleAuthMode(isRegister) {
+  const loginBox = document.getElementById('auth-login-box');
+  const registerBox = document.getElementById('auth-register-box');
+  const msgDiv = document.getElementById('auth-message');
+  
+  msgDiv.style.display = 'none'; // Pulisce eventuali vecchi messaggi
+  
+  if (isRegister) {
+    loginBox.style.display = 'none';
+    registerBox.style.display = 'block';
+  } else {
+    loginBox.style.display = 'block';
+    registerBox.style.display = 'none';
+  }
+}
+
+// Funzione temporanea di simulazione per testare che la schermata si tolga
+function handleLogin() {
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-password').value;
+  const msgDiv = document.getElementById('auth-message');
+
+  if (!email || !password) {
+    msgDiv.style.textContent = "Compila tutti i campi.";
+    msgDiv.style.color = "var(--red)";
+    msgDiv.style.display = "block";
+    return;
+  }
+
+  // Per ora simuliamo che l'accesso vada a buon fine per testare la UI
+  msgDiv.style.textContent = "Accesso in corso...";
+  msgDiv.style.color = "#4caf50";
+  msgDiv.style.display = "block";
+
+  setTimeout(() => {
+    // Nascondiamo la schermata di autenticazione e mostriamo l'app
+    document.getElementById('auth-screen').style.display = 'none';
+  }, 1000);
+}
+
+// Funzione temporanea per simulare la registrazione
+function handleRegister() {
+  const email = document.getElementById('reg-email').value;
+  const pass = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-password-confirm').value;
+  const msgDiv = document.getElementById('auth-message');
+
+  if (!email || !pass || !confirm) {
+    msgDiv.textContent = "Compila tutti i campi.";
+    msgDiv.style.color = "var(--red)";
+    msgDiv.style.display = "block";
+    return;
+  }
+
+  if (pass !== confirm) {
+    msgDiv.textContent = "Le password non coincidono.";
+    msgDiv.style.color = "var(--red)";
+    msgDiv.style.display = "block";
+    return;
+  }
+
+  msgDiv.textContent = "Account creato! Ora puoi accedere.";
+  msgDiv.style.color = "#4caf50";
+  msgDiv.style.display = "block";
+  
+  setTimeout(() => {
+    toggleAuthMode(false); // Riporta l'utente al login
+  }, 1500);
 }
 
 
