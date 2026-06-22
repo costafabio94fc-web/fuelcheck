@@ -1012,11 +1012,10 @@ function filterGarageCarSearch() {
 
   resultsDiv.innerHTML = '';
 
-  // Filtriamo cercando nel testo completo (Marca + Modello + Versione)
   const filtered = DB.filter(c => {
     const fullText = `${c.m} ${c.mod} ${c.v}`.toLowerCase();
     return fullText.includes(query);
-  }).slice(0, 20); // Massimo 20 risultati visibili per non intasare la pagina
+  }).slice(0, 20);
 
   if (filtered.length === 0) {
     resultsDiv.innerHTML = '<div style="padding:10px; color:var(--muted); font-size:13px; text-align:left;">Nessuna auto trovata. Scrivi i dati manualmente sotto.</div>';
@@ -1026,35 +1025,31 @@ function filterGarageCarSearch() {
 
   filtered.forEach(c => {
     const item = document.createElement('div');
-    item.style.cssText = 'padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); font-size:14px; text-align:left; color:#f0ede8; transition: background 0.2s;';
+    item.style.cssText = 'padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); font-size:14px; text-align:left; color:#f0ede8;';
     item.innerHTML = `<strong>${c.m}</strong> ${c.mod} <span style="color:var(--muted); font-size:12px;">${c.v} (${c.y})</span>`;
     
-    // Logica identica a quella che avevi prima su onGarageCarSelect, ma adattata all'oggetto del DB
     item.onclick = function() {
-      gCarInfo = {
-        ...gCarInfo,
-        marca: c.m,
-        modello: c.mod,
-        versione: c.v,
-        fuel: c.f,
-        anno: String(c.y || '')
-      };
+      // 1. Aggiorna l'oggetto globale dell'auto con TUTTI i dati del DB necessari alla community
+      gCarInfo.marca = c.m;
+      gCarInfo.modello = c.mod;
+      gCarInfo.versione = c.v;
+      gCarInfo.fuel = c.f; // <-- FONDAMENTALE PER LA COMMUNITY
+      gCarInfo.anno = String(c.y || '');
       
-      // Mette il nome dell'auto scelta dentro la barra di ricerca superiore
+      // 2. Scrive il testo nella barra di ricerca
       input.value = `${c.m} ${c.mod} ${c.v}`;
       
-      // Applica ai campi manuali e salva nel localStorage
+      // 3. Sincronizza i campi di testo manuali e i chip grafici sottostanti
       applyCarInfoToUI();
+      
+      // 4. Salva stabilmente nel localStorage
       saveCarInfo();
       
-      // Nasconde il popup dei risultati
       resultsDiv.style.display = 'none';
     };
 
-    // Effetti hover per dare feedback visivo
     item.onmouseenter = () => item.style.background = 'rgba(255,255,255,0.08)';
     item.onmouseleave = () => item.style.background = 'transparent';
-    
     resultsDiv.appendChild(item);
   });
 
