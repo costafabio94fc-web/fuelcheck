@@ -994,35 +994,71 @@ function saveGarageData() {
 }
 
 // ── Popola select dal DB ───────────────────────────────────────
-function populateCarSelect() {
-  const sel = document.getElementById('gCarSelect');
-  // Raggruppa per marca
-  const grouped = {};
-  DB.forEach(c => {
-    if (!grouped[c.m]) grouped[c.m] = [];
-    grouped[c.m].push(c);
-  });
-  Object.keys(grouped).sort().forEach(marca => {
-    const og = document.createElement('optgroup');
-    og.label = marca;
-    grouped[marca].forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = JSON.stringify({marca:c.m, modello:c.mod, versione:c.v, fuel:c.f, anno:c.y});
-      opt.textContent = `${c.mod} ${c.v} (${c.y})`;
-      og.appendChild(opt);
-    });
-    sel.appendChild(og);
+// Sostituisce populateCarSelect() e gestisce la chiusura del dropdown cliccando fuori
+function initGarageSearch() {
+  document.addEventListener('click', function(e) {
+    const container = document.querySelector('.car-search-container');
+    if (container && !container.contains(e.target)) {
+      document.getElementById('gCarSearchResults').style.display = 'none';
+    }
   });
 }
 
-function onGarageCarSelect(val) {
-  if (!val) return;
-  try {
-    const d = JSON.parse(val);
-    gCarInfo = {...gCarInfo, ...d, anno: String(d.anno || '')};
-    applyCarInfoToUI();
-    saveCarInfo();
-  } catch(e) {}
+// Nuova funzione per filtrare dinamicamente l'array DB mentre l'utente digita
+function filterGarageCarSearch() {
+  const input = document.getElementById('gCarSearchInput');
+  const resultsDiv = document.getElementById('gCarSearchResults');
+  const query = input.value.trim().toLowerCase();
+
+  resultsDiv.innerHTML = '';
+
+  // Filtriamo cercando nel testo completo (Marca + Modello + Versione)
+  const filtered = DB.filter(c => {
+    const fullText = `${c.m} ${c.mod} ${c.v}`.toLowerCase();
+    return fullText.includes(query);
+  }).slice(0, 20); // Massimo 20 risultati visibili per non intasare la pagina
+
+  if (filtered.length === 0) {
+    resultsDiv.innerHTML = '<div style="padding:10px; color:var(--muted); font-size:13px; text-align:left;">Nessuna auto trovata. Scrivi i dati manualmente sotto.</div>';
+    resultsDiv.style.display = 'block';
+    return;
+  }
+
+  filtered.forEach(c => {
+    const item = document.createElement('div');
+    item.style.cssText = 'padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); font-size:14px; text-align:left; color:#f0ede8; transition: background 0.2s;';
+    item.innerHTML = `<strong>${c.m}</strong> ${c.mod} <span style="color:var(--muted); font-size:12px;">${c.v} (${c.y})</span>`;
+    
+    // Logica identica a quella che avevi prima su onGarageCarSelect, ma adattata all'oggetto del DB
+    item.onclick = function() {
+      gCarInfo = {
+        ...gCarInfo,
+        marca: c.m,
+        modello: c.mod,
+        versione: c.v,
+        fuel: c.f,
+        anno: String(c.y || '')
+      };
+      
+      // Mette il nome dell'auto scelta dentro la barra di ricerca superiore
+      input.value = `${c.m} ${c.mod} ${c.v}`;
+      
+      // Applica ai campi manuali e salva nel localStorage
+      applyCarInfoToUI();
+      saveCarInfo();
+      
+      // Nasconde il popup dei risultati
+      resultsDiv.style.display = 'none';
+    };
+
+    // Effetti hover per dare feedback visivo
+    item.onmouseenter = () => item.style.background = 'rgba(255,255,255,0.08)';
+    item.onmouseleave = () => item.style.background = 'transparent';
+    
+    resultsDiv.appendChild(item);
+  });
+
+  resultsDiv.style.display = 'block';
 }
 
 function applyCarInfoToUI() {
@@ -1031,6 +1067,14 @@ function applyCarInfoToUI() {
   document.getElementById('gVersione').value= gCarInfo.versione|| '';
   document.getElementById('gAnno').value    = gCarInfo.anno    || '';
   selectFuel(gCarInfo.fuel || 'benzina', false);
+  
+  // Aggiungi questo in fondo alla funzione applyCarInfoToUI() esistente
+  if (gCarInfo.marca && gCarInfo.modello) {
+    const searchInput = document.getElementById('gCarSearchInput');
+    if (searchInput) {
+      searchInput.value = `${gCarInfo.marca} ${gCarInfo.modello} ${gCarInfo.versione || ''}`.trim();
+    }
+  }
 }
 
 function saveCarInfo() {
@@ -1450,7 +1494,7 @@ function renderChartSpesa(rows) {
 
 // ── Init garage ────────────────────────────────────────────────
 function initGarage() {
-  populateCarSelect();
+  initGarageSearch();
   loadGarageData();
   applyCarInfoToUI();
   setTodayDate();
@@ -1708,14 +1752,32 @@ render();
 <div class="garage-area">
 
   <!-- Sezione: la tua auto -->
-  <div class="garage-section">
+<div class="garage-section">
     <div class="garage-title">🚗 La tua auto</div>
-    <div class="car-selector-wrap">
-      <select class="car-selector" id="gCarSelect" onchange="onGarageCarSelect(this.value)">
-        <option value="">— Seleziona dal database oppure inserisci manualmente —</option>
-      </select>
-      <span class="car-selector-chevron">▾</span>
+    
+    <div class="car-search-container" style="position: relative; margin-bottom: 15px;">
+      <input class="comm-search" id="gCarSearchInput" type="text" 
+             placeholder="🔍 Cerca la tua auto nel database (es. Golf, Duster, Yaris...)" 
+             oninput="filterGarageCarSearch()" 
+             onfocus="filterGarageCarSearch()"/>
+      
+      <div id="gCarSearchResults" style="
+        display: none; 
+        position: absolute; 
+        top: 100%; 
+        left: 0; 
+        right: 0; 
+        background: var(--panel2); 
+        border: 1px solid var(--border); 
+        max-height: 250px; 
+        overflow-y: auto; 
+        z-index: 1000; 
+        border-radius: 4px;
+        margin-top: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      "></div>
     </div>
+
     <div class="car-custom-row">
       <div>
         <div class="car-custom-label">Marca</div>
