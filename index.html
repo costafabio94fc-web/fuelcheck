@@ -1064,6 +1064,223 @@ function setTodayDate() {
 }
 
 // ── Contributo automatico alla community ad ogni rifornimento ─
+async function pushToComm(riforn, prevOverride) {
+  console.log('[pushToComm] chiamata, odo:', riforn.odo, 'marca:', gCarInfo.marca);
+  if (!gCarInfo.marca || !gCarInfo.modello) { console.log('[pushToComm] no auto'); return; }
+  // Trova il rifornimento precedente per odometro
+  const prev = prevOverride || gRiforn.filter(x => x.odo < riforn.odo && x.id !== riforn.id)
+                                       .sort((a,b) => b.odo - a.odo)[0] || null;
+  console.log('[pushToComm] prev:', prev);
+  if (!prev) { console.log('[pushToComm] nessun prev, uscita'); return; }
+  const km = riforn.odo - prev.odo;
+  const cons = riforn.qta / km * 100;
+  console.log('[pushToComm] km:', km, 'cons:', cons);
+  if (km <= 0 || riforn.qta <= 0) { console.log('[pushToComm] km/qta non validi'); return; }
+  if (cons < 1 || cons > 60) { console.log('[pushToComm] cons fuori range:', cons); return; }
+  console.log('[pushToComm] chiamo loadCommData...');
+  try { await loadCommData(); } catch(e) { console.error('[pushToComm] loadCommData error:', e); return; }
+  console.log('[pushToComm] loadCommData OK, chiamo pushCommContrib...');
+  const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
+  const contrib = {
+    marca:    gCarInfo.marca,
+    modello:  gCarInfo.modello,
+    versione: gCarInfo.versione || null,
+    fuel:     gCarInfo.fuel || 'benzina',
+    misto:    parseFloat(cons.toFixed(2)),
+    autostr:  parseFloat(cons.toFixed(2)),
+    kmAnno:   null,
+    annoImm:  gCarInfo.anno || null,
+    profilo:  'misto',
+    note:     `Da rifornimento del ${riforn.data}`,
+    ts:       Date.now()
+  };
+  commContribs[key] = commContribs[key] || [];
+  commContribs[key].push(contrib);
+  console.log('[pushToComm] chiamo pushCommContrib, key:', key);
+  try { await pushCommContrib(key, contrib); console.log('[pushToComm] pushCommContrib OK!'); }
+  catch(e) { console.error('[pushToComm] pushCommContrib error:', e); }
+  renderCommResults();
+  updateCommCount();
+  console.log('[pushToComm] DONE');
+}
+
+// ── PROXY URL per analisi foto ────────────────────────────────
+// Cambia questo URL con quello del tuo Cloudflare Worker dopo il deploy
+const PROXY_URL = 'https://fuelcheck-vision.costafabio94fc.workers.dev/analyze';
+
+// ── FOTO DISPLAY DISTRIBUTORE ─────────────────────────────────
+let photoBase64 = null;
+let photoMime = "image/jpeg";
+
+function onPhotoSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    // Ridimensiona a max 800px e qualità 60% per stare sotto 128KB (limite Cloudflare free)
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 800, maxH = 800;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.6);
+      photoBase64 = compressed.split(',')[1];
+      photoMime = 'image/jpeg';
+      // Imposta data odierna automaticamente
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('rData').value = today;
+      // Mostra preview
+      document.getElementById('photoImg').src = compressed;
+      document.getElementById('photoPreview').style.display = 'block';
+      // Analizza automaticamente
+      await analyzePhoto();
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto() {
+  photoBase64 = null;
+  document.getElementById('photoInput').value = '';
+  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('photoResult').style.display = 'none';
+  document.getElementById('photoStatus').textContent = '';
+}
+
+function removeOdoPhoto() {
+  document.getElementById('photoOdoInput').value = '';
+  document.getElementById('photoPreviewOdo').style.display = 'none';
+  document.getElementById('photoOdoStatus').textContent = '';
+}
+
+function onOdoPhotoSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 800, maxH = 800;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.6);
+      document.getElementById('photoOdoImg').src = compressed;
+      document.getElementById('photoPreviewOdo').style.display = 'block';
+      await analyzeOdoPhoto(compressed.split(',')[1]);
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeOdoPhoto(base64) {
+  const status = document.getElementById('photoOdoStatus');
+  const btn = document.getElementById('photoOdoBtn');
+  btn.disabled = true;
+  status.style.color = 'var(--muted)';
+  status.textContent = '🔍 Lettura odometro con Gemini...';
+  try {
+    const resp = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        image: base64,
+        mime: 'image/jpeg',
+        prompt: `Questa è una foto del cruscotto o display di un'auto. Leggi il valore dell'odometro (km totali percorsi). Rispondi SOLO con JSON: {"km": 45230}. Se non leggibile metti null.`
+      })
+    });
+    if (!resp.ok) throw new Error(`Errore ${resp.status}`);
+    const data = await resp.json();
+    const text = (data.text || '').trim();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch(e) {
+      const match = text.match(/\{[^}]+\}/);
+      if (match) { try { parsed = JSON.parse(match[0]); } catch(e2) {} }
+    }
+    if (parsed && parsed.km != null) {
+      const km = parseInt(String(parsed.km).replace(/[.,\s]/g, ''));
+      if (!isNaN(km) && km > 0) {
+        document.getElementById('rOdo').value = km;
+        status.style.color = '#5be898';
+        status.textContent = `✓ Odometro rilevato: ${km.toLocaleString('it')} km`;
+      } else {
+        status.style.color = '#f5c060';
+        status.textContent = '⚠ Valore non valido — inserisci manualmente';
+      }
+    } else {
+      status.style.color = '#f5c060';
+      status.textContent = `⚠ Non riesco a leggere l'odometro — inserisci manualmente`;
+    }
+  } catch(err) {
+    status.style.color = '#f87171';
+    status.textContent = `✗ Errore: ${err.message}`;
+  }
+  btn.disabled = false;
+}
+
+async function analyzePhoto() {
+  const status = document.getElementById('photoStatus');
+  const result = document.getElementById('photoResult');
+  const btn    = document.getElementById('photoBtn');
+
+  btn.disabled = true;
+  status.style.color = 'var(--muted)';
+  status.textContent = '🔍 Analisi con Gemini in corso...';
+  result.style.display = 'none';
+
+  try {
+    const resp = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        image: photoBase64,
+        mime:  photoMime
+      })
+    });
+
+    if (!resp.ok) throw new Error(`Proxy error ${resp.status}`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    const text = (data.text || '').trim();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch(e) {
+      const match = text.match(/\{[^}]+\}/);
+      if (match) { try { parsed = JSON.parse(match[0]); } catch(e2) {} }
+    }
+    if (parsed) {
+      const litri = parsed.litri != null ? parseFloat(String(parsed.litri).replace(',','.')) : null;
+      const euro  = parsed.euro  != null ? parseFloat(String(parsed.euro).replace(',','.'))  : null;
+      if (litri) document.getElementById('rQta').value = litri;
+      if (euro)  document.getElementById('rPrezzo').value = euro;
+      const parts = [];
+      if (litri) parts.push(`${litri} L`);
+      if (euro)  parts.push(`€ ${euro}`);
+      result.textContent = `✓ Rilevato: ${parts.join(' · ')} — controlla e correggi se necessario`;
+      result.style.display = 'block';
+      status.textContent = '';
+    } else {
+      status.style.color = '#f5c060';
+      status.textContent = '⚠ Non riesco a leggere i valori — inserisci manualmente';
+    }
+  } catch(err) {
+    status.style.color = '#f87171';
+    status.textContent = `✗ Errore: ${err.message || 'controlla la API key'}`;
+    console.error(err);
+  }
+  btn.disabled = false;
+}
+
 async function addRifornimento() {
   const data   = document.getElementById('rData').value;
   const odo    = parseFloat(document.getElementById('rOdo').value);
@@ -1074,11 +1291,13 @@ async function addRifornimento() {
     return;
   }
   const r = {id: Date.now(), data, odo, qta, prezzo};
-  const prevRif = gRiforn.filter(x => x.odo < odo).sort((a,b) => b.odo - a.odo)[0] || null;
   gRiforn.push(r);
   gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
   saveGarageData();
-  try { await pushToComm(r, prevRif); } catch(e) { console.warn('pushToComm error:', e); }
+  // Contribuisci automaticamente alla community
+  try { await pushToComm(r); }
+  catch(e) { console.warn('pushToComm error:', e); }
+  // Reset form (mantieni data)
   document.getElementById('rOdo').value = '';
   document.getElementById('rQta').value = '';
   document.getElementById('rPrezzo').value = '';
@@ -1091,16 +1310,19 @@ function deleteRifornimento(id) {
   renderGarage();
 }
 
+// ── Calcoli ───────────────────────────────────────────────────
 function computeRows() {
+  // rows: [{r, km, cons, prezzo_u}]
   return gRiforn.map((r, i) => {
     const prev = i > 0 ? gRiforn[i-1] : null;
     const km   = prev ? r.odo - prev.odo : null;
-    const cons = (km && km > 0 && r.qta > 0) ? (r.qta / km * 100) : null;
+    const cons = (km && km > 0 && r.qta > 0) ? (r.qta / km * 100) : null; // per 100km
     const prezzo_u = r.qta > 0 ? r.prezzo / r.qta : null;
     return {r, km, cons, prezzo_u};
   });
 }
 
+// ── Render principale ──────────────────────────────────────────
 function renderGarage() {
   const rows = computeRows();
   const hasData = gRiforn.length > 0;
@@ -1115,6 +1337,7 @@ function renderGarage() {
   renderChartSpesa(rows);
 }
 
+// ── Statistiche ────────────────────────────────────────────────
 function renderStats(rows) {
   const consRows = rows.filter(r => r.cons !== null);
   const avgCons  = consRows.length ? (consRows.reduce((s,r) => s + r.cons, 0) / consRows.length) : null;
@@ -1133,6 +1356,7 @@ function renderStats(rows) {
   ].map(s => `<div class="stat-card"><div class="stat-val">${s.v}</div><div class="stat-label">${s.l}</div></div>`).join('');
 }
 
+// ── Tabella storico ────────────────────────────────────────────
 function renderHistTable(rows) {
   const fuel = gCarInfo.fuel || 'benzina';
   const isEv = fuel === 'elettrica', isM = fuel === 'metano';
@@ -1156,6 +1380,7 @@ function renderHistTable(rows) {
   }).join('');
 }
 
+// ── Grafico consumi ────────────────────────────────────────────
 function renderChartCons(rows) {
   const pts = rows.filter(r => r.cons !== null);
   const el = document.getElementById('gChartCons');
@@ -1167,43 +1392,63 @@ function renderChartCons(rows) {
   const yS = v => PT + (1-(v-min)/(max-min)) * (H-PT-PB);
   const poly = pts.map((p,i) => `${xS(i)},${yS(p.cons)}`).join(' ');
   const area = `${xS(0)},${H-PB} ` + poly + ` ${xS(pts.length-1)},${H-PB}`;
+  // Y ticks
   const yTicks = [0.25,0.5,0.75,1.0].map(f => {
-    const v = min + f*(max-min), y = yS(v);
-    return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/><text x="${PL-4}" y="${y+4}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="end">${v.toFixed(1)}</text>`;
+    const v = min + f*(max-min);
+    const y = yS(v);
+    return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <text x="${PL-4}" y="${y+4}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="end">${v.toFixed(1)}</text>`;
+  });
+  // X labels (max 6)
+  const step = Math.ceil(pts.length / 6);
+  const xLabels = pts.filter((_,i) => i%step===0 || i===pts.length-1).map((p,_,arr) => {
+    const i = pts.indexOf(p);
+    const d = p.r.data.split('-');
+    return `<text x="${xS(i)}" y="${H-PB+16}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="middle">${d[2]}/${d[1]}</text>`;
+  });
+  // Dots + tooltip titles
+  const dots = pts.map((p,i) => `<circle cx="${xS(i)}" cy="${yS(p.cons)}" r="4" fill="var(--red)" stroke="var(--dark)" stroke-width="2"><title>${p.r.data}: ${p.cons.toFixed(2)} ${p.r.r?.fuel==='elettrica'?'kWh':'l'}/100km</title></circle>`);
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${yTicks.join('')}
+    <polyline points="${area}" fill="rgba(232,50,26,.12)" stroke="none"/>
+    <polyline points="${poly}" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linejoin="round"/>
+    ${dots.join('')}
+    ${xLabels.join('')}
+  </svg>`;
+}
+
+// ── Grafico spesa ──────────────────────────────────────────────
+function renderChartSpesa(rows) {
+  const pts = rows;
+  const el = document.getElementById('gChartSpesa');
+  if (pts.length < 1) { el.innerHTML = '<p style="color:var(--muted);font-size:12px;text-align:center;padding:1rem">Nessun dato.</p>'; return; }
+  const W=560, H=200, PL=48, PR=16, PT=16, PB=36;
+  const max = Math.max(...pts.map(p=>p.r.prezzo)) * 1.15;
+  const bW = Math.max(6, Math.min(28, (W-PL-PR)/pts.length - 4));
+  const xS = i => PL + (i+0.5) * (W-PL-PR) / pts.length;
+  const yS = v => PT + (1-v/max) * (H-PT-PB);
+  const yTicks = [0.25,0.5,0.75,1.0].map(f => {
+    const v = f*max, y = yS(v);
+    return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <text x="${PL-4}" y="${y+4}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="end">${v.toFixed(0)}€</text>`;
   });
   const step = Math.ceil(pts.length / 6);
   const xLabels = pts.filter((_,i) => i%step===0 || i===pts.length-1).map(p => {
     const i = pts.indexOf(p), d = p.r.data.split('-');
     return `<text x="${xS(i)}" y="${H-PB+16}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="middle">${d[2]}/${d[1]}</text>`;
   });
-  const dots = pts.map((p,i) => `<circle cx="${xS(i)}" cy="${yS(p.cons)}" r="4" fill="var(--red)" stroke="var(--dark)" stroke-width="2"><title>${p.r.data}: ${p.cons.toFixed(2)} l/100km</title></circle>`);
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${yTicks.join('')}<polyline points="${area}" fill="rgba(232,50,26,.12)" stroke="none"/><polyline points="${poly}" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linejoin="round"/>${dots.join('')}${xLabels.join('')}</svg>`;
-}
-
-function renderChartSpesa(rows) {
-  const el = document.getElementById('gChartSpesa');
-  if (rows.length < 1) { el.innerHTML = '<p style="color:var(--muted);font-size:12px;text-align:center;padding:1rem">Nessun dato.</p>'; return; }
-  const W=560, H=200, PL=48, PR=16, PT=16, PB=36;
-  const max = Math.max(...rows.map(p=>p.r.prezzo)) * 1.15;
-  const bW = Math.max(6, Math.min(28, (W-PL-PR)/rows.length - 4));
-  const xS = i => PL + (i+0.5) * (W-PL-PR) / rows.length;
-  const yS = v => PT + (1-v/max) * (H-PT-PB);
-  const yTicks = [0.25,0.5,0.75,1.0].map(f => {
-    const v = f*max, y = yS(v);
-    return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/><text x="${PL-4}" y="${y+4}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="end">${v.toFixed(0)}€</text>`;
-  });
-  const step = Math.ceil(rows.length / 6);
-  const xLabels = rows.filter((_,i) => i%step===0 || i===rows.length-1).map(p => {
-    const i = rows.indexOf(p), d = p.r.data.split('-');
-    return `<text x="${xS(i)}" y="${H-PB+16}" fill="rgba(255,255,255,.35)" font-size="9" text-anchor="middle">${d[2]}/${d[1]}</text>`;
-  });
-  const bars = rows.map((p,i) => {
+  const bars = pts.map((p,i) => {
     const y = yS(p.r.prezzo), h = (H-PB) - y;
     return `<rect x="${xS(i)-bW/2}" y="${y}" width="${bW}" height="${h}" rx="2" fill="rgba(245,158,11,.7)"><title>${p.r.data}: ${p.r.prezzo.toFixed(2)} €</title></rect>`;
   });
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${yTicks.join('')}${bars.join('')}${xLabels.join('')}</svg>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${yTicks.join('')}
+    ${bars.join('')}
+    ${xLabels.join('')}
+  </svg>`;
 }
 
+// ── Init garage ────────────────────────────────────────────────
 function initGarage() {
   populateCarSelect();
   loadGarageData();
@@ -1212,35 +1457,31 @@ function initGarage() {
   renderGarage();
 }
 
-async function pushToComm(riforn, prevOverride) {
-  if (!gCarInfo.marca || !gCarInfo.modello) return;
-  const prev = prevOverride || gRiforn.filter(x => x.odo < riforn.odo && x.id !== riforn.id)
-                                       .sort((a,b) => b.odo - a.odo)[0] || null;
-  if (!prev) return;
-  const km = riforn.odo - prev.odo;
-  if (km <= 0 || riforn.qta <= 0) return;
-  const cons = riforn.qta / km * 100;
-  if (cons < 1 || cons > 60) return;
-  await loadCommData();
-  const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
-  const contrib = {
-    marca:    gCarInfo.marca,
-    modello:  gCarInfo.modello,
-    versione: gCarInfo.versione || null,
-    fuel:     gCarInfo.fuel || 'benzina',
-    misto:    parseFloat(cons.toFixed(2)),
-    autostr:  parseFloat(cons.toFixed(2)),
-    kmAnno:   null,
-    annoImm:  gCarInfo.anno || null,
-    profilo:  'misto',
-    note:     `Da rifornimento del ${riforn.data}`,
-    ts:       Date.now()
-  };
-  commContribs[key] = commContribs[key] || [];
-  commContribs[key].push(contrib);
-  try { await pushCommContrib(key, contrib); } catch(e) { console.warn('pushCommContrib error:', e); }
-  renderCommResults();
-  updateCommCount();
+
+// ══════════════════════════════════════════════════════════════
+//  COMMUNITY — Contributi condivisi via window.storage (shared)
+// ══════════════════════════════════════════════════════════════
+
+// Stato community
+let commContribs = {};   // {carUrl: [{misto,auto,kmAnno,profilo,note,annoImm,ts},...]}
+let commCarKey   = null; // url dell'auto selezionata nel form
+let commCarObj   = null; // oggetto DB auto selezionata
+
+// ── Storage helpers — Cloudflare KV via Worker ───────────────
+const COMM_URL = 'https://fuelcheck-vision.costafabio94fc.workers.dev/community';
+
+async function loadCommData() {
+  try {
+    const resp = await fetch(COMM_URL);
+    if (resp.ok) commContribs = await resp.json();
+    else commContribs = {};
+  } catch(e) {
+    commContribs = {};
+  }
+}
+
+async function saveCommData() {
+  // Non usato direttamente — ogni contributo viene salvato singolarmente via pushCommContrib
 }
 
 async function pushCommContrib(key, data) {
