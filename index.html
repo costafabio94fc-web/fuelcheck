@@ -1041,91 +1041,18 @@ function switchPage(p) {
 let gCarInfo = {marca:'', modello:'', versione:'', anno:'', fuel:'benzina'};
 let gRiforn  = []; // [{id, data, odo, qta, prezzo}]
 
-async function loadGarageData() {
+function loadGarageData() {
   try {
-    // 1. Carica le info auto dal localStorage locale (rimane com'era)
     const ci = localStorage.getItem('fc_carinfo');
     if (ci) gCarInfo = {...gCarInfo, ...JSON.parse(ci)};
-    
-    // 2. Carica i rifornimenti dal Cloud DB D1 filtrati per l'utente loggato
-    const token = localStorage.getItem('fc_user_token');
-    if (!token) return; // Se non è loggato, si ferma qui
-
-    const response = await fetch(`${WORKER_URL}/api/garage?token=${token}`);
-    const result = await response.json();
-
-    if (!response.ok) throw new Error(result.error);
-
-    if (result.ok && result.data) {
-      // Mappiamo i dati del database D1 nei campi usati dalla tua array 'gRiforn'
-      gRiforn = result.data.map(r => ({
-        id: r.id,
-        date: r.data,       // associa colonna 'data' del DB
-        km: r.odo,         // associa colonna 'odo' del DB
-        liters: r.qta,     // associa colonna 'qta' del DB
-        totalCost: r.prezzo // associa colonna 'prezzo' del DB
-      }));
-      
-      // Aggiorna l'interfaccia grafica con i dati appena scaricati
-      renderGarage();
-    }
-  } catch(e) {
-    console.error("Errore nel recupero dati dal cloud:", e.message);
-  }
+    const ri = localStorage.getItem('fc_riforn');
+    if (ri) gRiforn = JSON.parse(ri);
+  } catch(e) {}
 }
 
-async function saveGarageData() {
-  console.log("=== saveGarageData() AVVIATA ===");
-  
-  // 1. Salva info auto localmente
+function saveGarageData() {
   localStorage.setItem('fc_carinfo', JSON.stringify(gCarInfo));
-  console.log("Info auto salvate in locale.");
-  
-  // 2. Controllo Token
-  const token = localStorage.getItem('fc_user_token');
-  console.log("Token utente recuperato:", token);
-  if (!token) {
-    console.warn("ATTENZIONE: Token mancante! Il salvataggio in cloud è stato interrotto.");
-    return;
-  }
-
-  // 3. Controllo Array Rifornimenti
-  console.log("Stato attuale di gRiforn:", gRiforn);
-  const ultimoRiforn = gRiforn[gRiforn.length - 1];
-  console.log("Ultimo rifornimento intercettato:", ultimoRiforn);
-  
-  if (!ultimoRiforn) {
-    console.warn("ATTENZIONE: Nessun rifornimento trovato nell'array gRiforn! Spedizione annullata.");
-    return;
-  }
-
-  try {
-    console.log("Invio richiesta fetch al Worker...");
-    const response = await fetch(`${WORKER_URL}/api/garage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: token,
-        data: ultimoRiforn.date,
-        odo: ultimoRiforn.km,
-        qta: ultimoRiforn.liters,
-        prezzo: ultimoRiforn.totalCost
-      })
-    });
-
-    const result = await response.json();
-    console.log("Risposta ricevuta dal Worker:", result);
-
-    if (!response.ok) throw new Error(result.error);
-    
-    console.log("✨ SUCCESSOCLOUD: Rifornimento salvato su D1!");
-    localStorage.setItem('fc_riforn', JSON.stringify(gRiforn));
-
-  } catch (error) {
-    console.error("❌ ERRORE DURANTE LA FETCH:", error.message);
-    alert("Errore cloud: " + error.message);
-    localStorage.setItem('fc_riforn', JSON.stringify(gRiforn));
-  }
+  localStorage.setItem('fc_riforn',  JSON.stringify(gRiforn));
 }
 
 // ── Popola select dal DB ───────────────────────────────────────
@@ -1212,7 +1139,7 @@ function saveCarInfo() {
   gCarInfo.modello  = document.getElementById('gModello').value;
   gCarInfo.versione = document.getElementById('gVersione').value;
   gCarInfo.anno     = document.getElementById('gAnno').value;
-  await saveGarageData();
+  saveGarageData();
 }
 
 function selectFuel(fuel, save=true) {
@@ -1467,7 +1394,7 @@ async function addRifornimento() {
   const r = {id: Date.now(), data, odo, qta, prezzo};
   gRiforn.push(r);
   gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
-  await saveGarageData();
+  saveGarageData();
   // Contribuisci automaticamente alla community
   try { await pushToComm(r); }
   catch(e) { console.warn('pushToComm error:', e); }
@@ -1480,7 +1407,7 @@ async function addRifornimento() {
 
 function deleteRifornimento(id) {
   gRiforn = gRiforn.filter(r => r.id !== id);
-  await saveGarageData();
+  saveGarageData();
   renderGarage();
 }
 
@@ -1633,7 +1560,7 @@ function initGarage() {
 		document.getElementById('auth-screen').style.display = 'flex';
 	  }
   initGarageSearch();
-  await loadGarageData();
+  loadGarageData();
   applyCarInfoToUI();
   setTodayDate();
   renderGarage();
@@ -1661,7 +1588,6 @@ const WORKER_URL = "https://fuelcheck-vision.costafabio94fc.workers.dev";
 
 // Gestione dell'Accesso Reale
 async function handleLogin() {
-	if (e) e.preventDefault(); // ⬅️ Blocca il comportamento nativo del form!
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const msgDiv = document.getElementById('auth-message');
