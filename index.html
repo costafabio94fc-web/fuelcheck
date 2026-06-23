@@ -1661,6 +1661,7 @@ const WORKER_URL = "https://fuelcheck-vision.costafabio94fc.workers.dev";
 
 // Gestione dell'Accesso Reale
 async function handleLogin() {
+	if (e) e.preventDefault(); // ⬅️ Blocca il comportamento nativo del form!
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const msgDiv = document.getElementById('auth-message');
