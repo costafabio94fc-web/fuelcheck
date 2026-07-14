@@ -779,10 +779,12 @@ function hl(){
 }
 
 function fbadge(c){
-  const v=c.v.toLowerCase();
-  if(c.f==='elettrica') return {cls:'fe',lbl:'Elettrica'};
-  if(c.f==='diesel') return {cls:'fd2',lbl:'Diesel'};
-  if(c.f==='gpl') return {cls:'fg',lbl:'GPL'};
+  const v=(c.v || c.versione || '').toLowerCase();
+  const fuel = c.f || c.fuel || 'benzina';
+  if(fuel==='elettrica') return {cls:'fe',lbl:'Elettrica'};
+  if(fuel==='diesel') return {cls:'fd2',lbl:'Diesel'};
+  if(fuel==='gpl') return {cls:'fg',lbl:'GPL'};
+  if(fuel==='metano') return {cls:'fg',lbl:'Metano'};
   if(v.includes('plug-in')||v.includes('e-hybrid')||v.includes('tfsi e')||v.includes('dm-i')||v.includes('xdrive25e')||v.includes('hybrid 225')||v.includes('e-tense')||v.includes('etense')) return {cls:'fp',lbl:'Plug-in Hybrid'};
   if(v.includes('full hybrid')||v.includes('e:hev')||v.includes('e-tech')||v.includes('hybrid')) return {cls:'fh',lbl:'Ibrido'};
   return {cls:'fb2',lbl:'Benzina'};
@@ -1034,29 +1036,73 @@ function switchPage(p) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
   document.getElementById('page-' + p).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+  }
+  if (p === 'community') {
+    initCommunity();
+  } else if (p === 'garage') {
+    if (activeCarId) {
+      renderGarage();
+    } else {
+      renderGarageDashboard();
+    }
+  }
 }
 
 // ── Stato ─────────────────────────────────────────────────────
-let gCarInfo = {marca:'', modello:'', versione:'', anno:'', fuel:'benzina'};
-let gRiforn  = []; // [{id, data, odo, qta, prezzo}]
+let gCars = [];
+let activeCarId = null;
+let gRiforn  = []; // [{id, carId, data, odo, qta, prezzo}]
+let gSelectedFuel = 'benzina';
 
 function loadGarageData() {
   try {
-    const ci = localStorage.getItem('fc_carinfo');
-    if (ci) gCarInfo = {...gCarInfo, ...JSON.parse(ci)};
+    const carsStr = localStorage.getItem('fc_cars');
+    if (carsStr) {
+      gCars = JSON.parse(carsStr);
+    } else {
+      const oldCar = localStorage.getItem('fc_carinfo');
+      if (oldCar) {
+        const parsedOld = JSON.parse(oldCar);
+        if (parsedOld.marca || parsedOld.modello) {
+          gCars = [{
+            id: 'car_' + Date.now(),
+            marca: parsedOld.marca || '',
+            modello: parsedOld.modello || '',
+            versione: parsedOld.versione || '',
+            anno: parsedOld.anno || '',
+            fuel: parsedOld.fuel || 'benzina'
+          }];
+          localStorage.setItem('fc_cars', JSON.stringify(gCars));
+        }
+      }
+    }
     const ri = localStorage.getItem('fc_riforn');
-    if (ri) gRiforn = JSON.parse(ri);
-  } catch(e) {}
+    if (ri) {
+      gRiforn = JSON.parse(ri);
+      let migrated = false;
+      gRiforn.forEach(r => {
+        if (!r.carId) {
+          r.carId = gCars.length > 0 ? gCars[0].id : 'default_car';
+          migrated = true;
+        }
+      });
+      if (migrated) {
+        localStorage.setItem('fc_riforn', JSON.stringify(gRiforn));
+      }
+    }
+  } catch(e) {
+    console.error(e);
+  }
 }
 
 function saveGarageData() {
-  localStorage.setItem('fc_carinfo', JSON.stringify(gCarInfo));
+  localStorage.setItem('fc_cars', JSON.stringify(gCars));
   localStorage.setItem('fc_riforn',  JSON.stringify(gRiforn));
 }
 
 // ── Popola select dal DB ───────────────────────────────────────
-// Sostituisce populateCarSelect() e gestisce la chiusura del dropdown cliccando fuori
 function initGarageSearch() {
   document.addEventListener('click', function(e) {
     const container = document.querySelector('.car-search-container');
@@ -1066,7 +1112,6 @@ function initGarageSearch() {
   });
 }
 
-// Nuova funzione per filtrare dinamicamente l'array DB mentre l'utente digita
 function filterGarageCarSearch() {
   const input = document.getElementById('gCarSearchInput');
   const resultsDiv = document.getElementById('gCarSearchResults');
@@ -1091,22 +1136,12 @@ function filterGarageCarSearch() {
     item.innerHTML = `<strong>${c.m}</strong> ${c.mod} <span style="color:var(--muted); font-size:12px;">${c.v} (${c.y})</span>`;
     
     item.onclick = function() {
-      // 1. Aggiorna l'oggetto globale dell'auto con TUTTI i dati del DB necessari alla community
-      gCarInfo.marca = c.m;
-      gCarInfo.modello = c.mod;
-      gCarInfo.versione = c.v;
-      gCarInfo.fuel = c.f; // <-- FONDAMENTALE PER LA COMMUNITY
-      gCarInfo.anno = String(c.y || '');
-      
-      // 2. Scrive il testo nella barra di ricerca
       input.value = `${c.m} ${c.mod} ${c.v}`;
-      
-      // 3. Sincronizza i campi di testo manuali e i chip grafici sottostanti
-      applyCarInfoToUI();
-      
-      // 4. Salva stabilmente nel localStorage
-      saveCarInfo();
-      
+      document.getElementById('gMarca').value = c.m;
+      document.getElementById('gModello').value = c.mod;
+      document.getElementById('gVersione').value = c.v;
+      document.getElementById('gAnno').value = String(c.y || '');
+      selectFuel(c.f);
       resultsDiv.style.display = 'none';
     };
 
@@ -1118,42 +1153,119 @@ function filterGarageCarSearch() {
   resultsDiv.style.display = 'block';
 }
 
-function applyCarInfoToUI() {
-  document.getElementById('gMarca').value   = gCarInfo.marca   || '';
-  document.getElementById('gModello').value = gCarInfo.modello || '';
-  document.getElementById('gVersione').value= gCarInfo.versione|| '';
-  document.getElementById('gAnno').value    = gCarInfo.anno    || '';
-  selectFuel(gCarInfo.fuel || 'benzina', false);
-  
-  // Aggiungi questo in fondo alla funzione applyCarInfoToUI() esistente
-  if (gCarInfo.marca && gCarInfo.modello) {
-    const searchInput = document.getElementById('gCarSearchInput');
-    if (searchInput) {
-      searchInput.value = `${gCarInfo.marca} ${gCarInfo.modello} ${gCarInfo.versione || ''}`.trim();
-    }
-  }
-}
-
-function saveCarInfo() {
-  gCarInfo.marca    = document.getElementById('gMarca').value;
-  gCarInfo.modello  = document.getElementById('gModello').value;
-  gCarInfo.versione = document.getElementById('gVersione').value;
-  gCarInfo.anno     = document.getElementById('gAnno').value;
-  saveGarageData();
-}
-
-function selectFuel(fuel, save=true) {
-  gCarInfo.fuel = fuel;
-  document.querySelectorAll('.fuel-chip').forEach(btn => {
+function selectFuel(fuel) {
+  gSelectedFuel = fuel;
+  document.querySelectorAll('#gAddCarSection .fuel-chip').forEach(btn => {
     btn.className = 'fuel-chip';
     if (btn.dataset.fuel === fuel) btn.classList.add('sel-' + fuel);
   });
-  // Aggiorna label quantità
-  const isEv = fuel === 'elettrica', isM = fuel === 'metano';
+}
+
+function addNewCar() {
+  const marca = document.getElementById('gMarca').value.trim();
+  const modello = document.getElementById('gModello').value.trim();
+  const versione = document.getElementById('gVersione').value.trim();
+  const anno = document.getElementById('gAnno').value.trim();
+  
+  if (!marca || !modello) {
+    alert('Marca e Modello sono campi obbligatori.');
+    return;
+  }
+
+  const newCar = {
+    id: 'car_' + Date.now(),
+    marca,
+    modello,
+    versione: versione || '–',
+    anno: anno || '',
+    fuel: gSelectedFuel
+  };
+
+  gCars.push(newCar);
+  saveGarageData();
+
+  // Reset form
+  document.getElementById('gCarSearchInput').value = '';
+  document.getElementById('gMarca').value = '';
+  document.getElementById('gModello').value = '';
+  document.getElementById('gVersione').value = '';
+  document.getElementById('gAnno').value = '';
+  selectFuel('benzina');
+
+  renderGarageDashboard();
+}
+
+function deleteCar(carId) {
+  if (confirm('Sei sicuro di voler eliminare questa auto e tutti i suoi rifornimenti?')) {
+    gCars = gCars.filter(c => c.id !== carId);
+    gRiforn = gRiforn.filter(r => r.carId !== carId);
+    saveGarageData();
+    renderGarageDashboard();
+  }
+}
+
+function selectCar(carId) {
+  activeCarId = carId;
+  const car = gCars.find(c => c.id === carId);
+  if (!car) return;
+
+  document.getElementById('gActiveCarName').innerHTML = `${car.marca} ${car.modello}`;
+  document.getElementById('gActiveCarSub').innerHTML = `${car.versione || '–'} ${car.anno ? `(${car.anno})` : ''}`;
+  
+  const badge = document.getElementById('gActiveCarFuelBadge');
+  const b = fbadge(car);
+  badge.className = `fuel-badge ${b.cls}`;
+  badge.textContent = b.lbl;
+
+  const isEv = car.fuel === 'elettrica', isM = car.fuel === 'metano';
   document.getElementById('rQtaLabel').textContent = isEv ? 'kWh ricaricati' : isM ? 'kg erogati' : 'Litri erogati';
   const th = document.getElementById('thQta');
   if (th) th.textContent = isEv ? 'kWh' : isM ? 'kg' : 'Litri';
-  if (save) saveCarInfo();
+
+  document.getElementById('gDashboard').style.display = 'none';
+  document.getElementById('gCarDetail').style.display = 'block';
+
+  renderGarage();
+}
+
+function exitCarDetail() {
+  activeCarId = null;
+  document.getElementById('gCarDetail').style.display = 'none';
+  document.getElementById('gDashboard').style.display = 'block';
+  renderGarageDashboard();
+}
+
+function renderGarageDashboard() {
+  const container = document.getElementById('gCarsList');
+  if (gCars.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column: 1/-1; padding: 2rem;">
+        <div class="empty-icon">🚗</div>
+        <div class="empty-title">Nessuna auto nel garage</div>
+        <div class="empty-sub">Usa il form sottostante per aggiungere la tua prima auto</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = gCars.map(car => {
+    const b = fbadge(car);
+    const refuelsCount = gRiforn.filter(r => r.carId === car.id).length;
+    return `
+      <div class="car-card" style="cursor: pointer;" onclick="selectCar('${car.id}')">
+        <button class="car-remove" onclick="event.stopPropagation(); deleteCar('${car.id}')">×</button>
+        <span class="fuel-badge ${b.cls}">${b.lbl}</span>
+        <div class="car-head">
+          <div class="car-name">${car.marca} ${car.modello}</div>
+        </div>
+        <div class="car-version">${car.versione} ${car.anno ? `· ${car.anno}` : ''}</div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <span>📋 ${refuelsCount} riforniment${refuelsCount === 1 ? 'o' : 'i'}</span>
+          <span style="color: var(--red); font-weight: 600; font-family: var(--fd);">Gestisci ➜</span>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // ── Form rifornimento ──────────────────────────────────────────
@@ -1166,31 +1278,52 @@ function setTodayDate() {
 
 // ── Contributo automatico alla community ad ogni rifornimento ─
 async function pushToComm(riforn, prevOverride) {
-  console.log('[pushToComm] chiamata, odo:', riforn.odo, 'marca:', gCarInfo.marca);
-  if (!gCarInfo.marca || !gCarInfo.modello) { console.log('[pushToComm] no auto'); return; }
-  // Trova il rifornimento precedente per odometro
-  const prev = prevOverride || gRiforn.filter(x => x.odo < riforn.odo && x.id !== riforn.id)
+  const car = gCars.find(c => c.id === activeCarId);
+  if (!car || !car.marca || !car.modello) {
+    console.log('[pushToComm] Dati auto incompleti');
+    alert('⚠️ Impossibile inviare alla Community: Dati auto incompleti.');
+    return;
+  }
+  const prev = prevOverride || gRiforn.filter(x => x.carId === activeCarId && x.odo < riforn.odo && x.id !== riforn.id)
                                        .sort((a,b) => b.odo - a.odo)[0] || null;
   console.log('[pushToComm] prev:', prev);
-  if (!prev) { console.log('[pushToComm] nessun prev, uscita'); return; }
+  if (!prev) {
+    console.log('[pushToComm] nessun prev, uscita');
+    // Non allertare, è normale se è il primo rifornimento per questa auto
+    return;
+  }
   const km = riforn.odo - prev.odo;
   const cons = riforn.qta / km * 100;
   console.log('[pushToComm] km:', km, 'cons:', cons);
-  if (km <= 0 || riforn.qta <= 0) { console.log('[pushToComm] km/qta non validi'); return; }
-  if (cons < 1 || cons > 60) { console.log('[pushToComm] cons fuori range:', cons); return; }
+  if (km <= 0 || riforn.qta <= 0) {
+    console.log('[pushToComm] km o qta non validi');
+    alert('⚠️ Calcolo consumi non valido: verifica i dati del chilometraggio.');
+    return;
+  }
+  if (cons < 1 || cons > 60) {
+    console.log('[pushToComm] cons fuori range:', cons);
+    alert(`⚠️ Consumo calcolato (${cons.toFixed(2)} l/100km) fuori dai limiti logici (1-60). Non inviato.`);
+    return;
+  }
   console.log('[pushToComm] chiamo loadCommData...');
-  try { await loadCommData(); } catch(e) { console.error('[pushToComm] loadCommData error:', e); return; }
+  try {
+    await loadCommData();
+  } catch(e) {
+    console.error('[pushToComm] loadCommData error:', e);
+    alert('❌ Errore nel caricamento dei dati della community dal server.');
+    return;
+  }
   console.log('[pushToComm] loadCommData OK, chiamo pushCommContrib...');
-  const key = `${gCarInfo.marca}|${gCarInfo.modello}`.toLowerCase();
+  const key = `${car.marca}|${car.modello}`.toLowerCase();
   const contrib = {
-    marca:    gCarInfo.marca,
-    modello:  gCarInfo.modello,
-    versione: gCarInfo.versione || null,
-    fuel:     gCarInfo.fuel || 'benzina',
+    marca:    car.marca,
+    modello:  car.modello,
+    versione: car.versione || null,
+    fuel:     car.fuel || 'benzina',
     misto:    parseFloat(cons.toFixed(2)),
     autostr:  parseFloat(cons.toFixed(2)),
     kmAnno:   null,
-    annoImm:  gCarInfo.anno || null,
+    annoImm:  car.anno || null,
     profilo:  'misto',
     note:     `Da rifornimento del ${riforn.data}`,
     ts:       Date.now()
@@ -1198,8 +1331,12 @@ async function pushToComm(riforn, prevOverride) {
   commContribs[key] = commContribs[key] || [];
   commContribs[key].push(contrib);
   console.log('[pushToComm] chiamo pushCommContrib, key:', key);
-  try { await pushCommContrib(key, contrib); console.log('[pushToComm] pushCommContrib OK!'); }
-  catch(e) { console.error('[pushToComm] pushCommContrib error:', e); }
+  try {
+    await pushCommContrib(key, contrib);
+    console.log('[pushToComm] pushCommContrib OK!');
+  } catch(e) {
+    console.error('[pushToComm] pushCommContrib error:', e);
+  }
   renderCommResults();
   updateCommCount();
   console.log('[pushToComm] DONE');
@@ -1391,13 +1528,39 @@ async function addRifornimento() {
     alert('Compila tutti i campi prima di aggiungere il rifornimento.');
     return;
   }
-  const r = {id: Date.now(), data, odo, qta, prezzo};
+
+  // Cerchiamo tutti i rifornimenti di questa auto (prima di inserire il nuovo)
+  const carRiforn = gRiforn.filter(x => x.carId === activeCarId);
+
+  // Caso 1: c'è un rifornimento PRECEDENTE (odo minore) → calcoliamo consumi sul nuovo
+  const prevRiforn = carRiforn
+    .filter(x => parseFloat(x.odo) < odo)
+    .sort((a, b) => parseFloat(b.odo) - parseFloat(a.odo))[0] || null;
+
+  // Caso 2: c'è un rifornimento SUCCESSIVO (odo maggiore) → calcoliamo consumi su quello
+  //         (utile quando si inserisce un rifornimento "vecchio" come primo della serie)
+  const nextRiforn = carRiforn
+    .filter(x => parseFloat(x.odo) > odo)
+    .sort((a, b) => parseFloat(a.odo) - parseFloat(b.odo))[0] || null;
+
+  const r = {id: Date.now(), carId: activeCarId, data, odo, qta, prezzo};
   gRiforn.push(r);
-  gRiforn.sort((a,b) => a.data.localeCompare(b.data) || a.odo - b.odo);
+  gRiforn.sort((a,b) => a.data.localeCompare(b.data) || parseFloat(a.odo) - parseFloat(b.odo));
   saveGarageData();
-  // Contribuisci automaticamente alla community
-  try { await pushToComm(r); }
-  catch(e) { console.warn('pushToComm error:', e); }
+
+  // Invio community: usa il prev se esiste, altrimenti simula il calcolo su nextRiforn
+  try {
+    if (prevRiforn) {
+      // Caso normale: nuovo rifornimento viene dopo un precedente
+      await pushToComm(r, prevRiforn);
+    } else if (nextRiforn) {
+      // Caso retroattivo: il nuovo è il "primo" — calcoliamo usando il successivo come riforn
+      // e il nuovo come prev (cioè: nextRiforn ha percorso i km da r.odo a nextRiforn.odo)
+      await pushToComm(nextRiforn, r);
+    }
+    // Se nessuno dei due, è il solo rifornimento esistente: niente da calcolare
+  } catch(e) { console.warn('pushToComm error:', e); }
+
   // Reset form (mantieni data)
   document.getElementById('rOdo').value = '';
   document.getElementById('rQta').value = '';
@@ -1414,8 +1577,9 @@ function deleteRifornimento(id) {
 // ── Calcoli ───────────────────────────────────────────────────
 function computeRows() {
   // rows: [{r, km, cons, prezzo_u}]
-  return gRiforn.map((r, i) => {
-    const prev = i > 0 ? gRiforn[i-1] : null;
+  const activeRefuels = gRiforn.filter(r => r.carId === activeCarId);
+  return activeRefuels.map((r, i) => {
+    const prev = i > 0 ? activeRefuels[i-1] : null;
     const km   = prev ? r.odo - prev.odo : null;
     const cons = (km && km > 0 && r.qta > 0) ? (r.qta / km * 100) : null; // per 100km
     const prezzo_u = r.qta > 0 ? r.prezzo / r.qta : null;
@@ -1426,7 +1590,7 @@ function computeRows() {
 // ── Render principale ──────────────────────────────────────────
 function renderGarage() {
   const rows = computeRows();
-  const hasData = gRiforn.length > 0;
+  const hasData = rows.length > 0;
   document.getElementById('gEmpty').style.display = hasData ? 'none' : 'block';
   ['gStatsSection','gChartConsSection','gChartSpesaSection','gHistSection'].forEach(id => {
     document.getElementById(id).style.display = hasData ? '' : 'none';
@@ -1442,10 +1606,12 @@ function renderGarage() {
 function renderStats(rows) {
   const consRows = rows.filter(r => r.cons !== null);
   const avgCons  = consRows.length ? (consRows.reduce((s,r) => s + r.cons, 0) / consRows.length) : null;
-  const totSpesa = gRiforn.reduce((s,r) => s + r.prezzo, 0);
-  const totKm    = gRiforn.length > 1 ? (gRiforn[gRiforn.length-1].odo - gRiforn[0].odo) : null;
-  const totQta   = gRiforn.reduce((s,r) => s + r.qta, 0);
-  const fuel     = gCarInfo.fuel || 'benzina';
+  const activeRefuels = gRiforn.filter(r => r.carId === activeCarId);
+  const totSpesa = activeRefuels.reduce((s,r) => s + r.prezzo, 0);
+  const totKm    = activeRefuels.length > 1 ? (activeRefuels[activeRefuels.length-1].odo - activeRefuels[0].odo) : null;
+  const totQta   = activeRefuels.reduce((s,r) => s + r.qta, 0);
+  const car      = gCars.find(c => c.id === activeCarId);
+  const fuel     = car ? car.fuel : 'benzina';
   const isEv = fuel === 'elettrica', isM = fuel === 'metano';
   const unit = isEv ? 'kWh/100km' : isM ? 'kg/100km' : 'l/100km';
   const grid = document.getElementById('gStatsGrid');
@@ -1459,7 +1625,8 @@ function renderStats(rows) {
 
 // ── Tabella storico ────────────────────────────────────────────
 function renderHistTable(rows) {
-  const fuel = gCarInfo.fuel || 'benzina';
+  const car = gCars.find(c => c.id === activeCarId);
+  const fuel = car ? car.fuel : 'benzina';
   const isEv = fuel === 'elettrica', isM = fuel === 'metano';
   const allCons = rows.filter(r=>r.cons!==null).map(r=>r.cons);
   const avgC = allCons.length ? allCons.reduce((a,b)=>a+b,0)/allCons.length : null;
@@ -1561,9 +1728,8 @@ function initGarage() {
 	  }
   initGarageSearch();
   loadGarageData();
-  applyCarInfoToUI();
+  renderGarageDashboard();
   setTodayDate();
-  renderGarage();
 }
 
 // Funzione per scambiare visivamente tra Login e Registrazione
@@ -1714,13 +1880,20 @@ async function saveCommData() {
 
 async function pushCommContrib(key, data) {
   try {
-    await fetch(COMM_URL, {
+    const resp = await fetch(COMM_URL, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({key, data})
     });
+    if (!resp.ok) {
+      throw new Error(`Server returned HTTP ${resp.status}`);
+    }
+    const result = await resp.json();
+    console.log('[pushCommContrib] OK!', result);
+    alert(`🎉 Successo! Il consumo di questa auto è stato inviato alla Community! Totale contributi nel database: ${result.total}`);
   } catch(e) {
-    console.warn('KV write failed', e);
+    console.error('KV write failed', e);
+    alert('❌ Invio al database della community fallito: ' + e.message);
   }
 }
 
@@ -1923,174 +2096,201 @@ async function initCommunity() {
 }
 
 document.addEventListener('click',e=>{if(!e.target.closest('.search-area'))hSug()});
-// Aggiorna contatori con numero reale dal DB
-document.getElementById('carCount').textContent = `✓ ${DB.length} auto · prezzi MIMIT live`;
-document.getElementById('si').placeholder = `Cerca tra ${DB.length} modelli… DS, Dacia, BMW, Audi, Alfa, Citroen, Cupra…`;
-// Carica prezzi Emilia Romagna di default
-loadMIMIT();
-render();
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Aggiorna contatori con numero reale dal DB
+  document.getElementById('carCount').textContent = `✓ ${DB.length} auto · prezzi MIMIT live`;
+  document.getElementById('si').placeholder = `Cerca tra ${DB.length} modelli… DS, Dacia, BMW, Audi, Alfa, Citroen, Cupra…`;
+  // Carica prezzi Emilia Romagna di default
+  loadMIMIT();
+  render();
+  initGarage();
+  initCommunity();
+});
 </script>
 </div><!-- /page-compare -->
 
 <div id="page-garage" class="page">
 <div class="garage-area">
 
-  <!-- Sezione: la tua auto -->
-<div class="garage-section">
-    <div class="garage-title">🚗 La tua auto</div>
-    
-    <div class="car-search-container" style="position: relative; margin-bottom: 15px;">
-      <input class="comm-search" id="gCarSearchInput" type="text" 
-             placeholder="🔍 Cerca la tua auto nel database (es. Golf, Duster, Yaris...)" 
-             oninput="filterGarageCarSearch()" 
-             onfocus="filterGarageCarSearch()"/>
+  <!-- VISTA 1: DASHBOARD CON ELENCO AUTO -->
+  <div id="gDashboard">
+    <div class="garage-section">
+      <div class="garage-title" style="margin-bottom: 20px;">🚗 Le tue auto</div>
+      <div id="gCarsList" class="cars-grid" style="margin-bottom: 20px; background: none; gap: 10px;">
+        <!-- Generato via JS -->
+      </div>
+    </div>
+
+    <!-- Form per aggiungere un'auto -->
+    <div class="garage-section" id="gAddCarSection" style="margin-top: 30px;">
+      <div class="garage-title">＋ Aggiungi un'auto al tuo Garage</div>
       
-      <div id="gCarSearchResults" style="
-        display: none; 
-        position: absolute; 
-        top: 100%; 
-        left: 0; 
-        right: 0; 
-        background: var(--panel2); 
-        border: 1px solid var(--border); 
-        max-height: 250px; 
-        overflow-y: auto; 
-        z-index: 1000; 
-        border-radius: 4px;
-        margin-top: 4px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      "></div>
-    </div>
+      <div class="car-search-container" style="position: relative; margin-bottom: 15px;">
+        <input class="comm-search" id="gCarSearchInput" type="text" 
+               placeholder="🔍 Cerca l'auto nel database (es. Golf, Duster, Yaris...)" 
+               oninput="filterGarageCarSearch()" 
+               onfocus="filterGarageCarSearch()"/>
+        
+        <div id="gCarSearchResults" style="
+          display: none; 
+          position: absolute; 
+          top: 100%; 
+          left: 0; 
+          right: 0; 
+          background: var(--panel2); 
+          border: 1px solid var(--border); 
+          max-height: 250px; 
+          overflow-y: auto; 
+          z-index: 1000; 
+          border-radius: 4px;
+          margin-top: 4px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        "></div>
+      </div>
 
-    <div class="car-custom-row">
-      <div>
-        <div class="car-custom-label">Marca</div>
-        <input class="g-input" id="gMarca" placeholder="es. Volkswagen" oninput="saveCarInfo()"/>
-      </div>
-      <div>
-        <div class="car-custom-label">Modello</div>
-        <input class="g-input" id="gModello" placeholder="es. Golf" oninput="saveCarInfo()"/>
-      </div>
-    </div>
-    <div class="car-custom-row">
-      <div>
-        <div class="car-custom-label">Versione / motore</div>
-        <input class="g-input" id="gVersione" placeholder="es. 1.5 TSI 130cv" oninput="saveCarInfo()"/>
-      </div>
-      <div>
-        <div class="car-custom-label">Anno immatricolazione</div>
-        <input class="g-input" id="gAnno" type="number" placeholder="es. 2022" oninput="saveCarInfo()"/>
-      </div>
-    </div>
-    <div class="fuel-selector-wrap">
-      <div class="car-custom-label" style="margin-bottom:6px">Carburante</div>
-      <div class="fuel-chips">
-        <button class="fuel-chip" data-fuel="benzina" onclick="selectFuel('benzina')">⛽ Benzina</button>
-        <button class="fuel-chip" data-fuel="diesel" onclick="selectFuel('diesel')">🛢 Diesel</button>
-        <button class="fuel-chip" data-fuel="gpl" onclick="selectFuel('gpl')">💧 GPL</button>
-        <button class="fuel-chip" data-fuel="metano" onclick="selectFuel('metano')">🌿 Metano</button>
-        <button class="fuel-chip" data-fuel="elettrica" onclick="selectFuel('elettrica')">⚡ Elettrica</button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Sezione: nuovo rifornimento -->
-  <div class="garage-section">
-    <div class="garage-title">⛽ Aggiungi rifornimento</div>
-    <div class="riforn-form">
-      <!-- Foto display distributore -->
-      <div class="photo-btn-wrap">
-        <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(this)"/>
-        <button class="btn-photo" id="photoBtn" onclick="document.getElementById('photoInput').click()">
-          📷 Scatta foto display distributore
-        </button>
-      </div>
-      <div class="photo-preview" id="photoPreview">
-        <img id="photoImg" src="" alt="Display distributore"/>
-        <button class="photo-preview-remove" onclick="removePhoto()" title="Rimuovi foto">✕</button>
-      </div>
-      <div class="photo-status" id="photoStatus"></div>
-      <div class="photo-result" id="photoResult"></div>
-      <!-- Foto odometro -->
-      <div class="photo-btn-wrap">
-        <input type="file" id="photoOdoInput" accept="image/*" capture="environment" style="display:none" onchange="onOdoPhotoSelected(this)"/>
-        <button class="btn-photo-odo" id="photoOdoBtn" onclick="document.getElementById('photoOdoInput').click()">
-          🚗 Fotografa odometro / cruscotto
-        </button>
-      </div>
-      <div class="photo-preview-odo" id="photoPreviewOdo">
-        <img id="photoOdoImg" src="" alt="Odometro"/>
-        <button class="photo-preview-remove" onclick="removeOdoPhoto()" title="Rimuovi foto" style="top:6px;right:6px">✕</button>
-      </div>
-      <div class="photo-odo-status" id="photoOdoStatus"></div>
-      <!-- Campi manuali -->
-      <div class="riforn-grid-4">
+      <div class="car-custom-row">
         <div>
-          <div class="g-label">Data</div>
-          <input class="g-input" id="rData" type="date"/>
+          <div class="car-custom-label">Marca *</div>
+          <input class="g-input" id="gMarca" placeholder="es. Volkswagen"/>
         </div>
         <div>
-          <div class="g-label">Odometro (km)</div>
-          <input class="g-input" id="rOdo" type="number" placeholder="es. 45230" min="0"/>
-        </div>
-        <div>
-          <div class="g-label" id="rQtaLabel">Litri erogati</div>
-          <input class="g-input" id="rQta" type="number" placeholder="es. 42.5" min="0" step="0.1"/>
-        </div>
-        <div>
-          <div class="g-label">Prezzo pagato (€)</div>
-          <input class="g-input" id="rPrezzo" type="number" placeholder="es. 78.20" min="0" step="0.01"/>
+          <div class="car-custom-label">Modello *</div>
+          <input class="g-input" id="gModello" placeholder="es. Golf"/>
         </div>
       </div>
-      <button class="btn-add" onclick="addRifornimento()">＋ Aggiungi rifornimento</button>
+      <div class="car-custom-row" style="margin-top: 8px;">
+        <div>
+          <div class="car-custom-label">Versione / motore</div>
+          <input class="g-input" id="gVersione" placeholder="es. 1.5 TSI 130cv"/>
+        </div>
+        <div>
+          <div class="car-custom-label">Anno immatricolazione</div>
+          <input class="g-input" id="gAnno" type="number" placeholder="es. 2022"/>
+        </div>
+      </div>
+      <div class="fuel-selector-wrap" style="margin-top: 12px; margin-bottom: 20px;">
+        <div class="car-custom-label" style="margin-bottom:6px">Carburante *</div>
+        <div class="fuel-chips">
+          <button class="fuel-chip" data-fuel="benzina" onclick="selectFuel('benzina')">⛽ Benzina</button>
+          <button class="fuel-chip" data-fuel="diesel" onclick="selectFuel('diesel')">🛢 Diesel</button>
+          <button class="fuel-chip" data-fuel="gpl" onclick="selectFuel('gpl')">💧 GPL</button>
+          <button class="fuel-chip" data-fuel="metano" onclick="selectFuel('metano')">🌿 Metano</button>
+          <button class="fuel-chip" data-fuel="elettrica" onclick="selectFuel('elettrica')">⚡ Elettrica</button>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addNewCar()">＋ Aggiungi Auto</button>
     </div>
   </div>
 
-  <!-- Sezione: statistiche -->
-  <div class="garage-section" id="gStatsSection" style="display:none">
-    <div class="garage-title">📊 Statistiche</div>
-    <div class="stats-grid" id="gStatsGrid"></div>
-  </div>
-
-  <!-- Sezione: grafico consumi -->
-  <div class="garage-section" id="gChartConsSection" style="display:none">
-    <div class="garage-title">📈 Consumi nel tempo</div>
-    <div class="chart-svg-wrap" id="gChartCons"></div>
-  </div>
-
-  <!-- Sezione: grafico spesa -->
-  <div class="garage-section" id="gChartSpesaSection" style="display:none">
-    <div class="garage-title">💶 Spesa per rifornimento</div>
-    <div class="chart-svg-wrap" id="gChartSpesa"></div>
-  </div>
-
-  <!-- Sezione: storico -->
-  <div class="garage-section" id="gHistSection" style="display:none">
-    <div class="garage-title">📋 Storico rifornimenti</div>
-    <div class="riforn-table-wrap">
-      <table class="riforn-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Odometro</th>
-            <th>Km percorsi</th>
-            <th id="thQta">Litri</th>
-            <th>€ Totale</th>
-            <th>€/L</th>
-            <th>Consumo</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="gHistBody"></tbody>
-      </table>
+  <!-- VISTA 2: DETTAGLIO AUTO SELEZIONATA -->
+  <div id="gCarDetail" style="display: none;">
+    <button class="mimit-btn" onclick="exitCarDetail()" style="margin-bottom: 15px; display: inline-flex; align-items: center; gap: 6px;">
+      ⬅ Torna alle mie auto
+    </button>
+    
+    <div class="comm-hero" style="text-align: left; padding: 1.2rem; margin-bottom: 1.5rem;">
+      <div class="fuel-badge" id="gActiveCarFuelBadge" style="margin-bottom: 5px;"></div>
+      <div class="comm-hero-title" id="gActiveCarName" style="font-size: 24px; margin-bottom: 2px;">Nome Auto</div>
+      <div class="comm-hero-sub" id="gActiveCarSub">Versione e Anno</div>
     </div>
-  </div>
 
+    <!-- Sezione: nuovo rifornimento -->
+    <div class="garage-section">
+      <div class="garage-title">⛽ Aggiungi rifornimento</div>
+      <div class="riforn-form">
+        <!-- Foto display distributore -->
+        <div class="photo-btn-wrap">
+          <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(this)"/>
+          <button class="btn-photo" id="photoBtn" onclick="document.getElementById('photoInput').click()">
+            📷 Scatta foto display distributore
+          </button>
+        </div>
+        <div class="photo-preview" id="photoPreview">
+          <img id="photoImg" src="" alt="Display distributore"/>
+          <button class="photo-preview-remove" onclick="removePhoto()" title="Rimuovi foto">✕</button>
+        </div>
+        <div class="photo-status" id="photoStatus"></div>
+        <div class="photo-result" id="photoResult"></div>
+        <!-- Foto odometro -->
+        <div class="photo-btn-wrap">
+          <input type="file" id="photoOdoInput" accept="image/*" capture="environment" style="display:none" onchange="onOdoPhotoSelected(this)"/>
+          <button class="btn-photo-odo" id="photoOdoBtn" onclick="document.getElementById('photoOdoInput').click()">
+            🚗 Fotografa odometro / cruscotto
+          </button>
+        </div>
+        <div class="photo-preview-odo" id="photoPreviewOdo">
+          <img id="photoOdoImg" src="" alt="Odometro"/>
+          <button class="photo-preview-remove" onclick="removeOdoPhoto()" title="Rimuovi foto" style="top:6px;right:6px">✕</button>
+        </div>
+        <div class="photo-odo-status" id="photoOdoStatus"></div>
+        <!-- Campi manuali -->
+        <div class="riforn-grid-4">
+          <div>
+            <div class="g-label">Data</div>
+            <input class="g-input" id="rData" type="date"/>
+          </div>
+          <div>
+            <div class="g-label">Odometro (km)</div>
+            <input class="g-input" id="rOdo" type="number" placeholder="es. 45230" min="0"/>
+          </div>
+          <div>
+            <div class="g-label" id="rQtaLabel">Litri erogati</div>
+            <input class="g-input" id="rQta" type="number" placeholder="es. 42.5" min="0" step="0.1"/>
+          </div>
+          <div>
+            <div class="g-label">Prezzo pagato (€)</div>
+            <input class="g-input" id="rPrezzo" type="number" placeholder="es. 78.20" min="0" step="0.01"/>
+          </div>
+        </div>
+        <button class="btn-add" onclick="addRifornimento()">＋ Aggiungi rifornimento</button>
+      </div>
+    </div>
 
-  <div class="garage-empty" id="gEmpty">
-    <div class="garage-empty-icon">🚗</div>
-    <div class="garage-empty-text">Inserisci la tua auto e il primo rifornimento per iniziare a tracciare i consumi</div>
+    <!-- Sezione: statistiche -->
+    <div class="garage-section" id="gStatsSection" style="display:none">
+      <div class="garage-title">📊 Statistiche</div>
+      <div class="stats-grid" id="gStatsGrid"></div>
+    </div>
+
+    <!-- Sezione: grafico consumi -->
+    <div class="garage-section" id="gChartConsSection" style="display:none">
+      <div class="garage-title">📈 Consumi nel tempo</div>
+      <div class="chart-svg-wrap" id="gChartCons"></div>
+    </div>
+
+    <!-- Sezione: grafico spesa -->
+    <div class="garage-section" id="gChartSpesaSection" style="display:none">
+      <div class="garage-title">💶 Spesa per rifornimento</div>
+      <div class="chart-svg-wrap" id="gChartSpesa"></div>
+    </div>
+
+    <!-- Sezione: storico -->
+    <div class="garage-section" id="gHistSection" style="display:none">
+      <div class="garage-title">📋 Storico rifornimenti</div>
+      <div class="riforn-table-wrap">
+        <table class="riforn-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Odometro</th>
+              <th>Km percorsi</th>
+              <th id="thQta">Litri</th>
+              <th>€ Totale</th>
+              <th>€/L</th>
+              <th>Consumo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="gHistBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="garage-empty" id="gEmpty" style="margin-top: 20px;">
+      <div class="garage-empty-icon">⛽</div>
+      <div class="garage-empty-text">Aggiungi il tuo primo rifornimento per questa auto per iniziare a tracciare i consumi</div>
+    </div>
   </div>
 
 </div>
