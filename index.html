@@ -119,10 +119,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 @keyframes flashGreen{0%{border-color:rgba(91,232,152,.7);background:rgba(91,232,152,.1)}100%{border-color:rgba(232,50,26,.4);background:rgba(232,50,26,.05)}}
 
 /* ── NAV TABS ── */
-.nav-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--dark);position:sticky;top:0;z-index:100}
+.nav-tabs{display:flex;align-items:center;border-bottom:1px solid var(--border);background:var(--dark);position:sticky;top:0;z-index:100}
 .nav-tab{flex:1;font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:13px 0;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .18s;background:none;border-top:none;border-left:none;border-right:none}
 .nav-tab.active{color:#f0ede8;border-bottom-color:var(--red)}
 .page{display:none}.page.active{display:block}
+.logout-btn{flex:0 0 auto;padding:7px 14px;margin-right:10px;font-family:var(--fd);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .18s;white-space:nowrap}
+.logout-btn:hover{color:var(--red);border-color:var(--red)}
 
 /* ── GARAGE LAYOUT ── */
 .garage-area{padding:1.2rem 1.4rem;max-width:800px;margin:0 auto}
@@ -342,6 +344,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   <button class="nav-tab active" onclick="switchPage('compare')">⛽ Confronto</button>
   <button class="nav-tab" onclick="switchPage('garage')">🚗 Il mio garage</button>
   <button class="nav-tab" onclick="switchPage('community')">👥 Community</button>
+  <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" title="Esci dall'account">⎋ Esci</button>
 </div>
 <div id="page-compare" class="page active">
 <div class="profilo-area">
@@ -1056,12 +1059,19 @@ let activeCarId = null;
 let gRiforn  = []; // [{id, carId, data, odo, qta, prezzo}]
 let gSelectedFuel = 'benzina';
 
+// ── Chiave localStorage personalizzata per utente ────────────
+function garageKey(suffix) {
+  const token = localStorage.getItem('fc_user_token') || 'guest';
+  return `fc_${suffix}_${token}`;
+}
+
 function loadGarageData() {
   try {
-    const carsStr = localStorage.getItem('fc_cars');
+    const carsStr = localStorage.getItem(garageKey('cars'));
     if (carsStr) {
       gCars = JSON.parse(carsStr);
     } else {
+      // Migrazione: prova a leggere il vecchio formato generico (una tantum)
       const oldCar = localStorage.getItem('fc_carinfo');
       if (oldCar) {
         const parsedOld = JSON.parse(oldCar);
@@ -1074,11 +1084,11 @@ function loadGarageData() {
             anno: parsedOld.anno || '',
             fuel: parsedOld.fuel || 'benzina'
           }];
-          localStorage.setItem('fc_cars', JSON.stringify(gCars));
+          localStorage.setItem(garageKey('cars'), JSON.stringify(gCars));
         }
       }
     }
-    const ri = localStorage.getItem('fc_riforn');
+    const ri = localStorage.getItem(garageKey('riforn'));
     if (ri) {
       gRiforn = JSON.parse(ri);
       let migrated = false;
@@ -1089,7 +1099,7 @@ function loadGarageData() {
         }
       });
       if (migrated) {
-        localStorage.setItem('fc_riforn', JSON.stringify(gRiforn));
+        localStorage.setItem(garageKey('riforn'), JSON.stringify(gRiforn));
       }
     }
   } catch(e) {
@@ -1098,8 +1108,8 @@ function loadGarageData() {
 }
 
 function saveGarageData() {
-  localStorage.setItem('fc_cars', JSON.stringify(gCars));
-  localStorage.setItem('fc_riforn',  JSON.stringify(gRiforn));
+  localStorage.setItem(garageKey('cars'),   JSON.stringify(gCars));
+  localStorage.setItem(garageKey('riforn'), JSON.stringify(gRiforn));
 }
 
 // ── Popola select dal DB ───────────────────────────────────────
@@ -1849,6 +1859,26 @@ function showAuthMessage(text, color) {
   msgDiv.textContent = text;
   msgDiv.style.color = color;
   msgDiv.style.display = "block";
+}
+
+// Logout: cancella token e riporta alla schermata di accesso
+function handleLogout() {
+  if (!confirm('Sei sicuro di voler uscire dal tuo account?')) return;
+  localStorage.removeItem('fc_user_token');
+  localStorage.removeItem('fc_user_email');
+  // Resetta i dati in memoria per non far vedere il garage del vecchio utente
+  gCars = [];
+  gRiforn = [];
+  activeCarId = null;
+  // Pulisce i campi del form di login
+  const emailEl = document.getElementById('auth-email');
+  const passEl  = document.getElementById('auth-password');
+  if (emailEl) emailEl.value = '';
+  if (passEl)  passEl.value  = '';
+  showAuthMessage('', '');
+  // Torna alla schermata di login
+  toggleAuthMode(false);
+  document.getElementById('auth-screen').style.display = 'flex';
 }
 
 
